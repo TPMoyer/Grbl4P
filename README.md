@@ -20,6 +20,6 @@ First application for me:
 Processing has already proven it's worth, in that Peter Abeles'  boofCV Processing3 port
 functions nicely within a Raspberry PI.  
 
-[Image of Grbl4P GUI] (https://github.com/TPMoyer/Grbl4P/blob/master/README.md)
+[Image of Grbl4P GUI] (https://github.com/TPMoyer/Grbl4P/Grbl4P_Panel.png)
 
 Grbl homepage is at https://github.com/gnea/grbl/wiki

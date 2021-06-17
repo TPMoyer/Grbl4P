@@ -1,328 +1,691 @@
-/*****************************************************************************************************************************/
-void serialEvent(Serial p){ 
-  //log.debug("cme@ serialEvent()");
-  String s = p.readStringUntil('\n').trim();
-  if(0==s.length()){
-    //log.debug("serialEvent read() s.length="+s.length());
-  } else {
-    /**/log.debug("serialEvent read() s.length="+s.length()+" "+s);
-    if(!gpsInitialized)initializeGPS();
-  }  
-  /* Initial peek at the stream of data which enters this method 
-   * for(int ii=0;ii<s.length();ii++)println(String.format("%2d %c %3d",ii,s.charAt(ii),(int)s.charAt(ii))); 
-   * That show-every-character for() has become legacy code
-   */
-  Instant now=Instant.now(); 
-  Duration delta=Duration.between(priorInstant, now);
-  StringBuilder sb = new StringBuilder();
-  priorInstant=now;
-  /* the $, the * and the two hex characters of the checksum are this 4 length */
-  if(4<s.length()){    
-    mtk3339Acknolwledged=true;
-    String checkSumGot= s.substring(1+s.indexOf("*"));
-    String checkSumSee= getNMEA_MTK_checksum(s.substring(1,s.indexOf("*")));
-    if(1==checkSumSee.length())checkSumSee="0"+checkSumSee;
-    //log.debug((checkSumGot.equals(checkSumSee)?"TRUE ":"false")+" "+s+" checkSumGot="+checkSumGot+" "+checkSumSee+" checkSumSee");
-       
-    if(checkSumGot.equals(checkSumSee)){
-      if(s.startsWith("$GP")){
-        if(!seeGPS){
-          timeNSay("see GPS");
-          seeGPS=true;
-        }
-        String[] packets=packetizer(s);
-        //log.debug("number of GSGGA packets="+packets.length);
-        if(s.startsWith("$GPGGA")){ 
-          //log.debug("GPS Fix Data "+s);
-          if(0<packets[2].length()){
-            gotFix=true;
-            label5.setText("have Fix");
-            //log.debug(String.format("SE %d.%s   %s",delta.getSeconds(),String.format("%09d",delta.getNano()).substring(0,3),s));
-            //log.debug(s);
-            sb.setLength(0);
-            if(!fixSeen){
-              timeNSay("fix seen");  
-            }
-            //logDumpPackets(packets);
-            String hhUTC=packets[1].substring(0,2);
-            String mmUTC=packets[1].substring(2,4);
-            String ssUTC=packets[1].substring(4,8);
-            utc=hhUTC+":"+mmUTC+":"+ssUTC;
-            //log.debug("UTC Time = "+utc);
-            String deg=packets[2].substring(0,2);
-            String min=packets[2].substring(2,4);
-            String sec=packets[2].substring(5,7)+"."+packets[2].substring(7);
-            //log.debug("deg="+deg+" min="+min+" sec="+sec);
-            latitude=(packets[3].equals("N")?1.0:-1.0)*(Integer.parseInt(deg)+Integer.parseInt(min)/60.0+Double.parseDouble(sec)/3600.0);
-            //log.debug(String.format("deg2n="+Integer.parseInt(deg)+" min2n="+Integer.parseInt(min)+" min2nn="+Integer.parseInt(min)/60.0+" sec2n="+Double.parseDouble(sec)+" sec2nn="+Double.parseDouble(sec)/360000.0));
-            //log.debug("Latitude  "+(packets[4].charAt(0)=='0'?"":" ")+deg+"°"+min+"'"+sec+"\""+packets[3]+"  latitude="+String.format("%9.5f",latitude));
-            deg=packets[4].substring((packets[4].charAt(0)=='0'?1:0),3);
-            min=packets[4].substring(3,5);
-            sec=packets[4].substring(6,8)+"."+packets[4].substring(8);
-            //log.debug("deg="+deg+" min="+min+" sec="+sec);
-            longitude=(packets[5].equals("W")?-1.0:1.0)*(Integer.parseInt(deg)+Integer.parseInt(min)/60.0+Double.parseDouble(sec)/3600.0);
-            //log.debug(String.format("deg2n="+Integer.parseInt(deg)+" min2n="+Integer.parseInt(min)+" min2nn="+Integer.parseInt(min)/60.0+" sec2n="+Double.parseDouble(sec)+" sec2nn="+Double.parseDouble(sec)/360000.0));
-            //log.debug("Longitude "+deg+"°"+min+"'"+sec+"\""+packets[5]+"  longitude="+String.format("%10.5f",longitude));
-            String fix="Fix Not Available";
-            positionFixIndicator=packets[6];
-            if(packets[6].equals("1"))fix="GPS fix";
-            if(packets[6].equals("2"))fix="Differential GPS fix";
-            //log.debug("fix is "+fix);
-            numSatellites=Integer.parseInt(packets[7]);
-            label6.setText(String.format("%2d Satellites Active",numSatellites));
-            //log.debug("satellites used="+numSatellites);
-            //hdop=Double.parseDouble(packets[8]);
-            //log.debug("HDOP="+packets[8]);
-            altitude=Double.parseDouble(packets[9]);
-            //log.debug("MSL Altitude="+packets[9]+" "+packets[10].toLowerCase());
-            //geoidalSeparation=Double.parseDouble(packets[11]); /* Height of GeoID (mean sea level) above WGS84 ellipsoid, meter */
-            //log.debug("Geoidal Separation="+packets[11]+" "+packets[12].toLowerCase());
-            ageOfDiffCorr0=(0==packets[13].length())?0:Integer.parseInt(packets[13]);
-            ageOfDiffCorr1=(0==packets[14].length())?0:Integer.parseInt(packets[14]);
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
 
-            //log.debug("Age of Diff. Corr. ="+packets[13]+","+packets[14]);
-            /* This full version pumps out all the stuff from the GGA  BUT
-             * After my first pull, it seemed like the last 6 were not as useful as their names suggested 
-             */
-            //sb.append(
-            //  String.format(
-            //    "%10.5f,%9.5f,%5.1f,%2d,%s,%4.2f,%4.2f,%4.2f,%4.1f,%d,%d",                
-            //    longitude,
-            //    latitude,
-            //    altitude,
-            //    numSatellites,
-            //    utc,
-            //    pdop,
-            //    hdop,
-            //    vdop,
-            //    geoidalSeparation,
-            //    ageOfDiffCorr0,
-            //    ageOfDiffCorr1           
-            //  )  
-            //);
-            sb.append(
-              String.format(
-                "%10.5f,%9.5f,%5.1f,%2d,%s,%s,%d,%d",                
-                longitude,
-                latitude,
-                altitude,
-                numSatellites,
-                utc,
-                packets[6],
-                ageOfDiffCorr0,
-                ageOfDiffCorr1
-              )  
-            );
-            //log.debug("2 append ok sb.length="+sb.length()+" sb="+sb);
-            log1.debug(sb);
-            label1.setText(String.format("%9.5f  %9.5f   %7.1fm",latitude,longitude,altitude));
-            xyz0=wgs84XYZfromLatLonAlt(latitude,longitude,altitude);
-            xyz1=wgs84XYZfromLatLonAlt(latitude+oneOneHundredthArcSecond,longitude                         ,altitude);
-            //formatXYZ();
-            double dx=xyz1[0]-xyz0[0];
-            double dy=xyz1[1]-xyz0[1];
-            double dz=xyz1[2]-xyz0[2];
-            double precision=Math.sqrt( (dx*dx)+(dy*dy)+(dz*dz));
-            label8.setText(String.format( "Latitude(N-S)=%5.3fm",precision));
-            xyz1=wgs84XYZfromLatLonAlt(latitude                         ,longitude+oneOneHundredthArcSecond,altitude);
-            //formatXYZ();
-            dx=xyz1[0]-xyz0[0];
-            dy=xyz1[1]-xyz0[1];
-            dz=xyz1[2]-xyz0[2];
-            precision=Math.sqrt( (dx*dx)+(dy*dy)+(dz*dz));       
-            label9.setText(String.format("Longitude(E-W)=%5.3fm",precision));
-            ggaSeenPriorToGsv=true;
-          } else {  
-            // log.debug("have no fix");
-            gotFix=false;
-            label5.setText("no Fix");
-          }
-        } else
-        if(gotFix){
-          if(gotFix && s.startsWith("$GPGSA")){
-            /* a problem to be delt with is that GSV can report on more satellites than are active */
-            //log.debug("DOPS and Active Satellites "+s);
-            //logDumpPackets(packets);
-            if(3 < packets[packets.length-1].length()){ 
-              //log.debug(String.format("SE %d.%s   %s",delta.getSeconds(),String.format("%09d",delta.getNano()).substring(0,3),s));
-              sb.setLength(0);
-              //logDumpPackets(packets);
-              pdop=Double.parseDouble(packets[packets.length-3]);
-              hdop=Double.parseDouble(packets[packets.length-2]);
-              vdop=Double.parseDouble(packets[packets.length-1]);
-              log3.debug(String.format("%s,%4.2f,%4.2f,%4.2f",utc,hdop,vdop,pdop));
-              //log.debug(String.format("pdop=%4.2f hdop=%4.2f vdop=%4.2f",pdop,hdop,vdop));
-              /* prep up for interpreting the GSV inputs */
-              for(int ii = 1;ii<100;ii++){
-                activeSatelliteIDs[ii]=false; /* use the provided Id numbers, ie 0 is not used */
-              }              
-              int limit=3+numSatellites;
-              for(int ii=3;ii<limit;ii++){
-                int id=Integer.parseInt(packets[ii]);
-                //log.debug(String.format("see id=%02d as active",id));
-                activeSatelliteIDs[id]=true;
-              }
-              gsaSeenPriorToGsv=true;
-            }  
-          } else
-          if(s.startsWith("$GPGSV")){
-            //log.debug("Satellites in view, can be multiple rows, 4 or fewer per row "+s);
-            //logDumpPackets(packets);
-            if(  ggaSeenPriorToGsv
-               &&gsaSeenPriorToGsv
-              ){
-              int lim=packets.length;
-              //log.debug("lim="+lim);
-              for(int ii=4;ii<lim;ii+=4){
-                 //log.debug("going in with ii="+ii);
-                 int id=Integer.parseInt(packets[ii]);
-                 //log.debug(String.format("see id=%02d as active. Assigning packets[%2d] %2d %2d %2d",id,ii,ii+1,ii+2,ii+3));
-                 elevations    [id]=packets[ii+1];
-                 azimuths      [id]=packets[ii+2];
-                 signalToNoises[id]=packets[ii+3];
-              }  
-              /* if we are at the end of our last GSV, dump the full 99 satellites worth to the .csv */
-              if(packets[1].equals(packets[2])){
-                //log.debug("am at end of last GSV in this cluster");
-                sb.setLength(0);
-                for(int ii=1;ii<100;ii++){
-                  //log.debug(String.format("%2d %s",ii,sb));
-                  //log.debug(String.format("elevations[%2d].length()=",ii,elevations[ii].length()));
-                  sb.append(
-                    String.format(
-                      "%s,%s,%s,%s,%s",
-                      (1==ii?utc:""),
-                      activeSatelliteIDs[ii]?"Y":"N",
-                      null==elevations     [ii]?"":elevations    [ii],
-                      null==azimuths       [ii]?"":azimuths      [ii],
-                      null==signalToNoises [ii]?"":signalToNoises[ii]
-                    )
-                  );
-                }
-                //log.debug(sb);
-                log4.debug(sb);
-              } //else {
-                //log.debug("expecting another GSV before output");
-              //}  
-            } //else {
-              //log.debug("upon startup, hit the GSV first");
-            //}  
-          } else
-          if(s.startsWith("$GPRMC")){
-            //log.debug("Recommended Minimum Specific GNSS Sentence"+s);
-          } else
-          /* for those using the GPS as a velocity or dead reconning app this would be key
-           */
-          if(s.startsWith("$GPVTG")){  
-            //log.debug("Course and Speed over Ground "+s);
-            //logDumpPackets(packets);
-            /* per https://docs.rs-online.com/e883/0900766b8147dbed.pdf
-             * these fields are
-             *  0 GPVTG              message ID
-             *  1 COG(T)             Course over ground(true) indegrees
-             *  2 T                  fixed field: True
-             *  3 COG(M)             Course over ground (magnetic), not being output
-             *  4 M                  fixed field: Magnetic
-             *  5 Speed              Speed over ground in knots           
-             *  6 N                  Fixed field: knots           
-             *  7 Speed              speed over ground in km/h
-             *  8 K                  Fixed field, km/h
-             *  9 positioning mode   N=noFix   A = autonomous gnss fix    D= differential gnss fix
-             * 10 *                  end of data field
-             *  11 checksum          Hexadecimal checksum
-             * <CR><LF>              end of message
-            */
-            String cog=packets[1];
-            String speed=packets[7];
-             sb.append(
-               String.format(
-                 "%s,%s",                
-                 cog,
-                 speed       
-               )  
-             );
-             //log.debug("2 append ok sb.length="+sb.length()+" sb="+sb);
-             log2.debug(sb);
-          } else
-          if(s.startsWith("$GPGLL")){
-            //log.debug("Geographic Position Latitude Longitude "+s);
-          } else
-          if(s.startsWith("$GPZDA")){
-            //log.debug("Date Time Year and Local Time Zone Offset "+s);
-          }else {
-            log.error("recieved unhandled $GP response");
-          }
+void handleAlarmNError(String s){
+  //log.debug("inside handleAlarmNError s="+s);
+  String[] chunks=s.substring(1,s.length()-1).split("\\|",0);
+  //logNCon("number of chunks = "+chunks.length);
+  //for(int ii=0;ii<chunks.length;ii++){
+  //  logNCon("\n"+chunks[ii]);
+  //  for(int jj=0;jj<chunks[ii].length();jj++){
+  //    logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks[ii].charAt(jj),(int)chunks[ii].charAt(jj)));
+  //  }  
+  //}
+  for(int ii=1;ii<chunks.length;ii++){
+    /**/log.debug("at chunks "+ii+" "+chunks[ii]);
+    String[] responseData = chunks[ii].split(":",2);
+    //log.debug("responseData[0]="+responseData[0]);
+    //log.debug("responseData[1]="+responseData[1]);
+    if(responseData[0].equals("MPos")){
+      String[] pos = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          mPos[jj]=Float.valueOf(pos[jj]);
+        } catch (NumberFormatException nfe) {
+           logNCon("NumberFormatException: " + nfe.getMessage());
+           System.err.println("NumberFormatException: " + nfe.getMessage());
         }
-      } else 
-      if(s.startsWith("$PMTK")){
-        log.info("PMTK msg   "+s);
-        String[] packets=packetizer(s);        
-        //log.debug("number of PMTK packets="+packets.length);      
-        if(packets[0].equals("001")){ /* this is acknowledging a command */
-           mtk3339Acknolwledged=true;
-           if(  (packets[1].equals("314")) 
-              ||(packets[1].equals("220"))
-             ){
-             if(!packets[2].equals("3")){
-               String msg="FATAL ERROR   setup command PMTK"+packets[1]+" not successfull";
-               log.error(msg);
-               println(msg);
-               System.exit(1);
-             } else {
-               if(packets[1].equals("314")){
-                 log.info("PMTK314, selection of outputs, recieved and installed");
-               } else {
-                 log.info("PMTK220, time delay between fix acquisitions, recieved and installed");
-               }  
-             }            
-           } 
-        } else
-        if(packets[0].equals("705")){
-          log.info("firmware release string="+packets[1]+"   Build_Id="+packets[2]+"    Internal_USE_1="+packets[3]+"   Internal_Use_2="+packets[4]);
-        } else
-        if(packets[0].equals("CHN")){
-          //log.info("see channels");
-        } else {
-          log.error("OMG unexpected PMTK packet[0]");
-          //for(int ii=0;ii<packets.length;ii++){
-          //  log.debug(String.format("PMTK packets[%2d]=%s",ii,packets[ii]));
-          //}
-          logDumpPackets(packets);
-        }    
-      } else {
-        log.error("OMG checksum good msg did not startWith \"$GP\" or with \"$PMTK\"");
       }
-    } else {
-      log.error("recieved a bad checksum in msg="+s); 
+      /* label try 4 */
+      /* the WPos bold, larger upper row of locations */
+      label2 .setText(String.format("(%9.3f,",mPos[0]-wco[0]));
+      label10.setText(String.format("%9.3f," ,mPos[1]-wco[1]));
+      label11.setText(String.format("%9.3f)" ,mPos[2]-wco[2]));
+      
+      /* the MPos plain, smaller lower row of locations */
+      label7.setText(String.format("(%9.3f,",mPos[0]));
+      label8.setText(String.format("%9.3f," ,mPos[1]));
+      label9.setText(String.format("%9.3f)" ,mPos[2]));
+    } else 
+    if(responseData[0].equals("WCO")){
+      String[] wcos = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          wco[jj]=Float.valueOf(wcos[jj]);
+        } catch (NumberFormatException nfe) {
+          logNCon("NumberFormatException: " + nfe.getMessage());
+          System.err.println("NumberFormatException: " + nfe.getMessage());
+          System.exit(5);
+        }
+      }
+      //label2.setText(String.format("(%9.3f,%9.3f,%9.3f)",mPos[0],mPos[1],mPos[2]));
+      //label2.setTextBold();
+    }  else
+    if(responseData[0].equals("Ov")){
+      String[] ovs = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          ov[jj]=Float.parseFloat(ovs[jj]);
+        } catch (NumberFormatException nfe) {
+          logNCon("NumberFormatException: " + nfe.getMessage());
+          System.err.println("NumberFormatException: " + nfe.getMessage());
+          System.exit(8);
+        }
+      }
+    } else
+      if(responseData[0].equals("FS")){
+      String[] nums = responseData[1].split(",",2);
+      //log.debug("nums[0]="+nums[0]+" nums[1]="+nums[1]);
+      try {
+        String theFed=nums[0]+((-1==nums[0].indexOf('.')?" ":""));
+        //log.debug("theFed="+theFed);
+        feedRate=Float.valueOf(theFed);
+        /* label try 4 */
+        label16.setText(String.format("   Feed: %5.0f",feedRate));
+        //logNCon("feedRate="+feedRate);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage());
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+      try {
+        spindleSpeed=Integer.parseInt(nums[1]);
+        /* label try 4 */
+        label18.setText(String.format("Spindle: %5d",spindleSpeed));
+        //logNCon("spindleSpeed="+spindleSpeed);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage());
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    } else 
+    if(responseData[0].equals("Pn")){
+      //logNCon("responseData[1]="+responseData[1]);
+    } else  {
+       logNCon("UnKnown status label encounterd in chunk:"+chunks[ii]+"\n Am aborting.");
+       timeNSay(String.format("status recieved as pipeBound |%s|",s.trim()));
+       System.exit(2);
     }
-  }  
-  //log.debug("at end of serialEvent");
+  }
+  activeState=s.startsWith("Alarm")?"Alarm":"error";
+  /* label try 4 */
+  label3.setText("Active State:"+activeState);
+  label3.setLocalColorScheme(GCScheme.SCHEME_10);
+  label3.setOpaque(true);
+  //label3.setTextBold();
+  if(s.startsWith("Alarm"))port.write("?");
+  //log.debug("@endOf handleAlarmNError");
+}
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+void serialEvent(Serial p){
+  
+  String s = p.readStringUntil('\n').trim();
+  /* Initial peek at the stream of data which enters this method 
+   * for(int ii=0;ii<s.length();ii++)logNCon(String.format("%2d %c %3d",ii,s.charAt(ii),(int)s.charAt(ii))); 
+   * The above show-every-character for() has become legacy code
+   */
+  if(0<s.length()){  
+    //logNCon("serialEvent have s="+s);
+    //if(-1!=s.indexOf('>'))s=s.substring(0,s.indexOf('>')); 
+    if(!streaming){
+      if(  (5>idleCount)
+         &&(5>alarmCount)
+        ){ 
+        log.debug(String.format("see |%s|",s.trim()));
+      }
+      if(s.startsWith("<Idle" )){
+        idleCount++;
+      } else {
+        idleCount =0;
+      }  
+      if(s.startsWith("<Alarm")){
+        alarmCount++; 
+      } else {
+        alarmCount=0;
+      }  
+    }  
+    if(  (!streaming)
+       &&(  verboseOutput
+          ||('<'!=s.charAt(0))
+         ) 
+       &&('$'!=s.charAt(0)) /* do not push thru the grblParams,    they are pretty-printed post collection of the full set */  
+       &&('#'!=s.charAt(0)) /* do not push thru the hashtagParams, they are pretty-printed post collection of the full set */
+       
+      ){ 
+      timeNSay(String.format("see |%s|",s.trim()));
+       //timeNSay(String.format("serialEvent got pipeBound |%s|",s.trim()));
+      //timeNSay(String.format("serialEvent with "+(priorStatusHadPn?"true ":"false")+"==priorStatusHadPn  got pipeBound |%s|",s.trim()));
+    }
+    /* check for ok or error to have the numbers fed into the streaming handler be correct */
+    if(s.equals("ok") ){
+      if(streaming)numOKs+=1;
+      else {
+        label22.setText(""); /* remove any error or Alarm text */    /* label try 0 */
+        if(true==seeHashtagParams){
+          log.debug("in seehashtagParams");
+          hashtagParams2Console();
+          seeHashtagParams=false;
+        }
+        if(true==seeGrblParams){
+          log.debug("in seeGrblParams");
+          grblParams2Console();
+          seeGrblParams=false;
+        }
+      }
+    } else
+    if(  s.startsWith("error")
+       ||s.startsWith("<Alarm")
+    ){
+      if(streaming) handleStreamingError(s);
+      else handleAlarmNError(s); 
+    }
+    
+    if(streaming && bufferedReaderSet){
+      //logNCon("streaming "+s);
+      handleFileBufferFillNPush();
+    }
+    
+    if(s.charAt(0)=='<'){
+      handleStatusReport(s); /* the response to the 5hz status report query needed extensive handling */
+    } else
+    if(s.startsWith("[GC")){  /* currently no action taken upon recieving this */
+      logNCon("got [GC.   reflects "+s);
+    } else
+    if(s.startsWith("[HLP")){ /* currently no action taken upon recieving this */
+      logNCon("got [HLP.   reflects "+s);
+    } else
+    if(s.startsWith("[VER")){ /* currently no action taken upon recieving this */
+      logNCon("got [VER.   reflects "+s);
+    } else
+    if(s.startsWith("[OPT")){ /* currently no action taken upon recieving this */
+      logNCon("got [VER.   reflects "+s);
+    } else
+    if(s.startsWith("[MSG")){ /* currently no action taken upon recieving this */
+      handleMsg(s);
+    }else
+    if(  s.charAt(0)=='['){ /* the assembly of these into the (float[11][3]+lastProbeGood) needed extensive handling  */
+      handleNumberParams(s);
+    }  else
+    if(s.startsWith("Grbl")){
+      seeGrbl=true;
+      handleGrblSaysHello(s);
+    } else    
+    if(s.startsWith("$")){ /* collect these grbl parameters for use in the GUI  */
+      handleGrblSettingCollection(s);
+    } else
+    if(s.startsWith("<Idle")){ /* currently no action taken upon recieving this */
+      /* nada to to */
+    } 
+    /* this is not part of the above if{}else if{} stack.  This is an independent if */
+    if(  (true==priorStatusHadPn)
+       &&(!s.contains("Pn:"))
+      ){
+      handleCleanupOfNoMorePin(s);
+    }
+  }
 } 
 
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 /**************************************************************************************************************/
-void serialMTKPush(String s){
-  /* this accepts the raw string (yes with the PMTK at the front, 
-   * but without the $ at the front
-   * and without the * and the checksum at the end
-   */
-  int len=s.length();
-  byte[]  portByteArray = new byte[6+s.length()];
-  String checkSum=getNMEA_MTK_checksum(s);
-  portByteArray[0]='$';
-  for(int ii=0;ii<len;ii++){
-    portByteArray[1+ii]=(byte)s.charAt(ii);
-  }  
-  portByteArray[len+1]='*';
-  portByteArray[len+2]=(byte)checkSum.charAt(0);
-  portByteArray[len+3]=(byte)checkSum.charAt(1);
-  portByteArray[len+4]=(byte)13;
-  portByteArray[len+5]=(byte)10;
-  //for(int ii=0;ii<6+len;ii++){
-  //  log.debug(String.format("portByteArray[%3d]=%3d %c ",ii,portByteArray[ii],(char)portByteArray[ii]));
+/* this method reads the file and pushes the content to the arduino GRBL */
+void handleFileBufferFillNPush(){
+  //timeNSay("handleFileBufferFillNPush() numLinesSent="+numLinesSent+" numOks="+numOKs+" numErrors="+numErrors);
+  //timeNSay("h");
+  String line="";
+  String regex = "[0-9, /, /., /-]+";  /* used to look for lines which have only 3 numbers (as output by Rhino) 1.000, 3.223,-1.3   */
+  DecimalFormat df=new DecimalFormat("#.#");
+  if(  (0< numLinesSent)
+     &&(numLinesSent==(numOKs+numErrors))
+  ){
+    streaming=false;
+    String msg="streaming completed on "+numLinesSent+" gCode rows with "+numErrors+" errors";
+    logNCon(msg);
+    /* label try 1 */
+    label22.setText(msg);
+    if(0==numErrors)label22.setLocalColorScheme(GCScheme.GREEN_SCHEME);
+    log.debug("post label22 mod");    
+  } else {  
+    try {
+      /* read line by line until the number of bytes is greater than 128
+       * then push as many as will fit into the potentially partilly filled grbl buffer */
+       
+      /* This loads up the redBuffer with enough lines to be more than enough bytes to fill the entire grbl buffer  */
+      while(  (redBufferUsed < bufferSize)
+            &&((line = br.readLine()) != null)
+      ){
+        log.debug("lineOrig=|"+line+"|");
+        //logNCon("lineOrig=|"+line+"|");
+        //log.debug("       pipe bound line as input=|"+line+"|");
+        if(line.contains(";"))line=line.substring(0,line.indexOf(";"));
+        //log.debug("pipe bound comment purged line =|"+line+"|");
+        //String modLine=line.replaceAll("\\(.*\\)", "").replaceAll(" ","").toUpperCase()+"\n";
+        String modLine=line.replaceAll("\\(.*\\)", "").replaceAll(" ","").toUpperCase();
+        //log.debug("initial     pipe bound modLine =|"+modLine+"|");
+        if (modLine.matches(regex)) {
+          //log.debug("we have only numbers, commas, and/or decimalpoints");
+          String[] coords=modLine.split(",");
+          if(3==coords.length){
+            //log.debug("we will treat this as an XYZ tripplet");
+            modLine="G1X"+df.format(Double.parseDouble(coords[0]))+"Y"+df.format(Double.parseDouble(coords[1]))+"Z"+df.format(Double.parseDouble(coords[2]));
+            //log.debug("XYZ modded  pipe bound modLine =|"+modLine+"|");
+          }  
+        } //else {
+        //  log.debug("some Alphas seen");
+        //}
+        /* add some parsing to make XYZ tripples conform to GRBL GCode */
+        if(0<modLine.length()){
+          redBuffer.add(modLine+"\n");
+          redBufferUsed+=modLine.length()+1;
+        }  
+        rowCounter++;
+        label22.setText(rowCounter+" of "+numRows+" read");
+      }
+      //logNCon("redBuffer has "+redBuffer.size()+" rows");
+      //for(int ii=0;ii<redBuffer.size();ii++)logNCon(
+      //  String.format(
+      //    "%2d %3d %3d %s",          ii,
+      //    redBufferUsed,
+      //    redBuffer.get(ii).toString().length(),
+      //    redBuffer.get(ii).toString().substring(0,redBuffer.get(ii).toString().length()-1)
+      //  )
+      //);
+      
+      /* bean count the number of bytes still filling the grbl buffer
+       * by accounting for the lengths of the rows processed.
+       * The knowledge of "been processed" is gleened from grbl sending either an "ok" or and error:N
+       * for each row pulled in from the buffer and parsed into it's look-ahead scheme
+       */
+      while(numRowsConfirmedProcessed<(numOKs+numErrors)){
+        //logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d %3d %2d",numRowsConfirmedProcessed,(numOKs+numErrors),grblBufferUsed,sentLineLengths.size()));
+        grblBufferUsed-=sentLineLengths.get(0);
+        sentLineLengths.remove(0);
+        numRowsConfirmedProcessed+=1;
+      }  
+      
+      /* pull rows off the head of the redBuffer, and push them into the grblBuffer.
+       * Stop when one more row would overflow the grblBuffer 
+       * After having read the last row of the file, 
+       * and after having sent that last row to the buffer, redBuffer.size will be 0
+       */
+      if(0<redBuffer.size()){ 
+        String nextUp=redBuffer.get(0).toString();
+        int nextUpLength=nextUp.length();
+        while ((grblBufferUsed+nextUpLength)<=bufferSize){
+          port.write(nextUp);
+          grblBufferUsed+=nextUpLength;
+          sentLineLengths.add(nextUpLength);
+          numLinesSent+=1;
+          /**/log.debug(String.format(
+          /**/  "sent %3d bytes of %3d which will leave %3d bytes among the remaining %2d rows. |%s|",
+          /**/  nextUpLength,
+          /**/  redBufferUsed,        
+          /**/  redBufferUsed-nextUpLength,
+          /**/  redBuffer.size()-1,
+          /**/  redBuffer.get(0).toString().substring(0,redBuffer.get(0).toString().length()-1)        
+          /**/  )
+          /**/);
+          redBufferUsed-=nextUpLength;
+          redBuffer.remove(0);
+       
+          if(0<redBuffer.size()){
+            nextUp=redBuffer.get(0).toString();
+            nextUpLength=nextUp.length();
+          } else { /* the else will happen at the end of the file */
+            nextUpLength=bufferSize+1;
+          }      
+        }
+      }
+      //timeNSay("numLinesSent="+numLinesSent+" grblBufferUsed="+grblBufferUsed+" numOks="+numOKs+" numErrors="+numErrors);
+    
+    } catch (IOException e) {
+       System.err.format("IOException: %s%n", e);
+    }
+  } 
+} 
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleStatusReport(String s){ /* the response to the 5hz status report query */
+  String[] chunks=s.substring(1,s.length()-1).split("\\|",0);
+  //logNCon("number of chunks = "+chunks.length);
+  //for(int ii=0;ii<chunks.length;ii++){
+  //  logNCon("\n"+chunks[ii]);
+  //  for(int jj=0;jj<chunks[ii].length();jj++){
+  //    logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks[ii].charAt(jj),(int)chunks[ii].charAt(jj)));
+  //  }  
   //}
-  port.write(portByteArray);
+  for(int ii=1;ii<chunks.length;ii++){
+    String[] responseData = chunks[ii].split(":",2);
+    if(responseData[0].equals("MPos")){
+      //log.debug("MPos");
+      String[] pos = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          mPos[jj]=Float.valueOf(pos[jj]);
+        } catch (NumberFormatException nfe) {
+          logNCon("NumberFormatException: " + nfe.getMessage());
+          System.err.println("NumberFormatException: " + nfe.getMessage());
+        }
+      }
+      /* label try 1 */
+      /* the WPos bold, larger upper row of locations */
+      label2 .setText(String.format("(%9.3f,",mPos[0]-wco[0]));
+      label10.setText(String.format( "%9.3f,",mPos[1]-wco[1]));
+      label11.setText(String.format( "%9.3f)",mPos[2]-wco[2]));
+      
+      /* the MPos plain, smaller lower row of locations */
+      label7.setText(String.format("(%9.3f,",mPos[0]));
+      label8.setText(String.format( "%9.3f,",mPos[1]));
+      label9.setText(String.format( "%9.3f)",mPos[2]));
+    } else 
+    if(responseData[0].equals("FS")){
+      //log.debug("FS");
+      String[] nums = responseData[1].split(",",2);
+      try {
+        feedRate=Float.valueOf(nums[0]);
+        /* label try 2 */
+        //log.debug("2.0");
+        String aaa=String.format("%4.0f",feedRate);
+        //log.debug("2.0 "+aaa);
+        label16.setText(String.format("   Feed: %5.0f",feedRate));
+        //logNCon("feedRate="+feedRate);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage());
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+        log.debug("NumberFormatException: " + nfe.getMessage());
+      }
+      try {
+        spindleSpeed=Integer.parseInt(nums[1]);
+        /* label try 2 */
+        //log.debug("2.1");
+        label18.setText(String.format("Spindle: %5d",spindleSpeed));
+        //logNCon("spindleSpeed="+spindleSpeed);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage());
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    } else 
+    if(responseData[0].equals("F")){
+      //log.debug("F");
+      try {
+        feedRate=Float.valueOf(responseData[1]);
+        /* label try 2 */
+        String aaa=String.format("%4.0f",feedRate);
+        //log.debug("2.2 "+aaa);
+        label16.setText(String.format("   Feed: %5.0f",feedRate));
+        //logNCon("feedRate="+feedRate);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage());
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    } else
+    if(responseData[0].equals("Ov")){
+      //log.debug("Ov");
+      String[] ovs = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          ov[jj]=Float.parseFloat(ovs[jj]);
+        } catch (NumberFormatException nfe) {
+          logNCon("NumberFormatException: " + nfe.getMessage());
+          System.err.println("NumberFormatException: " + nfe.getMessage());
+          System.exit(8);
+        }
+      }
+    } else
+    if(responseData[0].equals("WCO")){
+      //log.debug("WCO");
+      String[] wcos = responseData[1].split(",",3);
+      for(int jj=0;jj<3;jj++){
+        try {
+          wco[jj]=Float.valueOf(wcos[jj]);
+        } catch (NumberFormatException nfe) {
+          logNCon("NumberFormatException: " + nfe.getMessage());
+          System.err.println("NumberFormatException: " + nfe.getMessage());
+          System.exit(5);
+        }
+      }
+      //label2.setText(String.format("(%9.3f,%9.3f,%9.3f)",mPos[0],mPos[1],mPos[2]));
+    } else
+    if(responseData[0].equals("Bf")){
+      //log.debug("Bf");
+      String[] bf = responseData[1].split(",",2);
+      //log.debug("number of available blocks in the planner buffer ="+bf[0]);
+      //log.debug("number of available bytes in the serial RX buffer="+bf[1]);
+    } else
+    if(responseData[0].equals("Pn")){
+      //log.debug("Pn");
+      /* did not put indicators on GUI for hold pin, soft-reset pin, or cycle-start pin */
+      /* label try 2 */
+      log.debug("2.3");
+      label23.setText(responseData[1].contains("X")?"X Limit On":"X Limit Off");
+      label24.setText(responseData[1].contains("Y")?"Y Limit On":"Y Limit Off");
+      label25.setText(responseData[1].contains("Z")?"Z Limit On":"Z Limit Off");
+      label26.setText(responseData[1].contains("P")?"Probe On"  :"Probe Off"  );
+      label27.setText(responseData[1].contains("D")?"Door Open" :"Door Closed");
+      
+      label23.setLocalColorScheme(responseData[1].contains("X")?GCScheme.SCHEME_10:GCScheme.SCHEME_9);
+      label24.setLocalColorScheme(responseData[1].contains("Y")?GCScheme.SCHEME_10:GCScheme.SCHEME_9);
+      label25.setLocalColorScheme(responseData[1].contains("Z")?GCScheme.SCHEME_10:GCScheme.SCHEME_9);
+      label26.setLocalColorScheme(responseData[1].contains("P")?GCScheme.SCHEME_10:GCScheme.SCHEME_9);
+      label27.setLocalColorScheme(responseData[1].contains("D")?GCScheme.SCHEME_10:GCScheme.SCHEME_9);
+      label23.setOpaque(responseData[1].contains("X"));
+      label24.setOpaque(responseData[1].contains("Y"));
+      label25.setOpaque(responseData[1].contains("Z"));
+      label26.setOpaque(responseData[1].contains("P"));
+      label27.setOpaque(responseData[1].contains("D"));
+      
+      priorStatusHadPn=true; 
+    } else  {
+       logNCon("UnKnown status label encounterd in chunk:"+chunks[ii]+"\n Am aborting.");
+       timeNSay(String.format("status recieved as pipeBound |%s|",s.trim()));
+       System.exit(2);
+    }    
+  }   
+  /* activeState can be:   Idle, Run, Hold, Door, Home, Alarm, Check */
+  String priorActiveState=activeState;
+  activeState=chunks[0].split(",",2)[0];
+  /* label try 3 */
+  //log.debug("3.0");
+  label3.setText("Active State:"+activeState);
+  if(  (  priorActiveState.equals("Alarm")
+        ||priorActiveState.equals("error")
+       ) 
+     &&(!activeState.equals("Alarm"))
+    ){
+    /* label try 3 */
+    //log.debug("3.1");
+    label3.setLocalColorScheme(GCScheme.SCHEME_9);
+    label3.setOpaque(false);
+  } else 
+  if(  (!priorActiveState.equals("Alarm"))
+     &&(activeState.equals("Alarm"))
+  ){
+    /* label try 3 */
+    //log.debug("3.2");
+    label3.setLocalColorScheme(GCScheme.SCHEME_10);
+    label3.setOpaque(true);
+  }
+}
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleMsg(String s){
+  //logNCon("gcode parser state reflects "+s);
+  lastMessage=s;
+  /* label try 3 */
+  log.debug("3.4");
+  label15.setText(lastMessage);
+  if(!activeState.equals("Alarm")){
+    label22.setText(""); 
+  }
+}
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleNumberParams(String s){
+  //logNCon("s="+s);   
+  int index=-1;
+  String[] chunks=s.substring(1,s.length()-1).split(":",0);
+  String[] nums = chunks[1].split(",",3);
+  if(chunks[0].charAt(0)=='G'){
+    //logNCon("chunks[0]="+chunks[0]+" num from "+chunks[0].substring(1,3));
+    int num =-1;
+    try {
+      num=Integer.parseInt(chunks[0].substring(1,3));
+    } catch (NumberFormatException nfe) {
+      logNCon("NumberFormatException: " + nfe.getMessage());
+      System.err.println("NumberFormatException: " + nfe.getMessage());
+      System.exit(6);
+    }
+    switch (num) {
+      case 54: index=0;
+        break;
+      case 55: index=1;
+        break;
+      case 56: index=2;
+        break;
+      case 57: index=3;
+        break;
+      case 58: index=4;
+        break;
+      case 59: index=5;
+        break;
+      case 28: index=6;
+        break;
+      case 30: index=7;
+        break;
+      case 92: index=8;
+        break;
+      default: logNCon("UnKnown gcode GXX parameter where XX=="+num+"\n Am aborting.");
+        timeNSay(String.format("gcode parameter as pipeBound |%s|",s.trim()));
+        System.exit(4);
+    }   
+  } else 
+  if(chunks[0].equals("TLO")){
+    index=9;
+  } else   
+  if(chunks[0].equals("PRB")){
+    index=10;
+    //logNCon("chunks[2]=|"+chunks[2]+"|");
+    lastProbeGood=('1'==chunks[2].charAt(0));                    
+  } else {
+    logNCon("UnKnown gcode parameter in "+s+"\n Am aborting.");
+    timeNSay(String.format("gcode parameter as pipeBound |%s|",s.trim()));
+    System.exit(3);
+  }
+  //logNCon("index="+index);
+  int limit=(9==index?1:3);
+  for(int jj=0;jj<limit;jj++){
+    try {
+      gParams[index][jj]=Float.parseFloat(nums[jj]);
+    } catch (NumberFormatException nfe) {
+      logNCon("NumberFormatException: " + nfe.getMessage());
+      System.err.println("NumberFormatException: " + nfe.getMessage());
+      System.exit(6);
+    }
+  }
+  seeHashtagParams=true;
+  //logNCon("got to end of s.charAt(0)=='['  if");
+}
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleGrblSaysHello(String s){
+  /* initial hellow from grbl.  send the $# command to get the eprom parameters */
+  frameTitle="GRBL Gui connected     port="+portName+"   "+s.substring(0,s.indexOf("[")-2);
+  timeNSay("grbl said hello");
+  button22.setText((verboseOutput ?"halt ":"provide ")+"verbose output");
+  
+  /* prompt for the stored eprom variables */
+  portMsg="$#\n";
+  port.write(portMsg);
+  //logNCon("port.wrote("+portMsg+")");
+
+  /* prompt for the stored settings */
+  portMsg="$$\n";
+  port.write(portMsg);
+  //logNCon("port.wrote("+portMsg+")");
+  
+  ///* if uncommentd, this will prompt the help response. see https://github.com/gnea/grbl/wiki/Grbl-v1.1-Commands */
+  //portMsg="$\n";
+  //port.write(portMsg);
+  //logNCon("port.wrote("+portMsg+")");    
+}
+
+
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleStreamingError(String s){
+  numErrors+=1;
+  try {
+    int num=Integer.parseInt(s.substring(s.indexOf(":")+1));
+    log.debug("streaming error num="+num);
+    label22.setText(s.startsWith("Alarm")?alarms[num-1]:errors[num-1]);
+    String err=String.format(
+      "row %6d has %s[%2d]=%s",
+      numRowsConfirmedProcessed+1,
+      (s.startsWith("Alarm")?"Alarm":"error"),
+      (num-1),
+      (s.startsWith("Alarm")?alarms[num-1]:errors[num-1])
+    );
+    logNCon(err);
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage());
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+    System.exit(6);
+  }
+}  
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleCleanupOfNoMorePin(String s){
+  logNCon("cleanup of the Pn affected lables due to expiration of a Pn:");  
+//*  label22.setText(""); /* remove any error or Alarm text */
+//*    
+//*  label23.setText("X Limit Off");
+//*  label24.setText("Y Limit Off");
+//*  label25.setText("Z Limit Off");
+//*  label26.setText("Probe Off"  );
+//*  label27.setText("Door Closed");
+//*  
+//*  label23.setLocalColorScheme(GCScheme.SCHEME_9);
+//*  label24.setLocalColorScheme(GCScheme.SCHEME_9);
+//*  label25.setLocalColorScheme(GCScheme.SCHEME_9);
+//*  label26.setLocalColorScheme(GCScheme.SCHEME_9);
+//*  label27.setLocalColorScheme(GCScheme.SCHEME_9);
+//*  
+//*  label23.setOpaque(false);
+//*  label24.setOpaque(false);
+//*  label25.setOpaque(false);
+//*  label26.setOpaque(false);
+//*  label27.setOpaque(false);
+  
+  priorStatusHadPn=false; 
+}
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+
+void handleGrblSettingCollection(String s){
+  //logNCon("handleGrblSettingCollection("+s+") with grblSettingIndices.length="+grblSettingIndices.length);
+  String[] chunks=s.substring(1).split("=",2);
+  //for(int ii=0;ii<chunks.length;ii++)logNCon(String.format("chunk[%d]=%s",ii,chunks[ii])); 
+  try {
+    int num=Integer.parseInt(chunks[0]);
+    for(int ii=0;ii<grblSettingIndices.length;ii++){
+       if(num==grblSettingIndices[ii])grblSettings[ii]=chunks[1]; 
+    }
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage());
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+    System.exit(6);
+  }
+  seeGrblParams=true;
 }
 
 /**************************************************************************************************************/

@@ -24,41 +24,47 @@ public void button22_click1(GButton source, GEvent event) { //_CODE_:button22:77
 public void button1_click1(GButton source, GEvent event) { //_CODE_:button1:294684:
   /* X- jog */
   //logNCon("button1 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 X%.3f F%.0f\n",-1.0*jogStepSizes[0],maxFeedRate);
+  portMsg=String.format("$J=G91 X%.3f F%1.0f\n",-1.0*jogStepSizes[0],maxFeedRates[0]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button1_click1",0);
 } //_CODE_:button1:294684:
 
 public void button2_click1(GButton source, GEvent event) { //_CODE_:button2:538427:
   /* X+ jog */
   //logNCon("button2 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 X%.3f F%.0f\n",jogStepSizes[0],maxFeedRate);
+  portMsg=String.format("$J=G91 X%.3f F%1.0f\n",jogStepSizes[0],maxFeedRates[0]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button2_click1",0);
 } //_CODE_:button2:538427:
 
 public void button3_click1(GButton source, GEvent event) { //_CODE_:button3:814160:
   /* reset X */
   //logNCon("button3 - GButton >> GEvent." + event + " @ " + millis());  
-  portMsg="G10 P0 L20 X0\n";
+  portMsg="G10 P"+currentWCO+" L20 X0\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button3_click1",0);
+  idleCount=0;
+  delay(100);
 } //_CODE_:button3:814160:
 
 public void button4_click1(GButton source, GEvent event) { //_CODE_:button4:900152:
   /* reset Y */
   //logNCon("button4 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G10 P0 L20 Y0\n";
+  portMsg="G10 P"+currentWCO+" L20 Y0\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button4_click1",0);
+  idleCount=0;
+  delay(100);
 } //_CODE_:button4:900152:
 
 public void button5_click1(GButton source, GEvent event) { //_CODE_:button5:671405:
   /* reset Z */
   //logNCon("button5 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G10 P0 L20 Z0\n";
+  portMsg="G10 P"+currentWCO+" L20 Z0\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button5_click1",0);
+  idleCount=0;
+  delay(100);
 } //_CODE_:button5:671405:
 
 public void button6_click1(GButton source, GEvent event) { //_CODE_:button6:996513:
@@ -66,7 +72,7 @@ public void button6_click1(GButton source, GEvent event) { //_CODE_:button6:9965
   /* kill alarm lock */
   portMsg="$X\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button6_click1",0);
  } //_CODE_:button6:996513:
 
 public void button7_click1(GButton source, GEvent event) { //_CODE_:button7:509439:
@@ -74,89 +80,89 @@ public void button7_click1(GButton source, GEvent event) { //_CODE_:button7:5094
   //logNCon("button7 - GButton >> GEvent." + event + " @ " + millis());
   portCode=0x18; /* ctrl-x */
   port.write(portCode);
-  logNConPort(portMsg+" which is 0x18 for reset");
+  logNConPort(portMsg+" which is 0x18 for reset.  ","button7_click1",0);
   
 } //_CODE_:button7:509439:
 
 public void button8_click1(GButton source, GEvent event) { //_CODE_:button8:961071:
   /* Y+ jog */
   //logNCon("button8 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 Y%.3f F%.0f\n",jogStepSizes[1],maxFeedRate);
+  portMsg=String.format("$J=G91 Y%.3f F%1.0f\n",jogStepSizes[1],maxFeedRates[1]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button8_click1",0);
 } //_CODE_:button8:961071:
 
 public void button9_click1(GButton source, GEvent event) { //_CODE_:button9:924782:
   /* Y- jog */
   //logNCon("button9 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 Y%.3f F%.0f\n",-1.0*jogStepSizes[1],maxFeedRate);
+  portMsg=String.format("$J=G91 Y%.3f F%1.0f\n",-1.0*jogStepSizes[1],maxFeedRates[1]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button9_click1",0);
 } //_CODE_:button9:924782:
 
 public void button10_click1(GButton source, GEvent event) { //_CODE_:button10:565302:
   /* Z+ jog */
   //logNCon("button10 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 Z%.3f F%.0f\n",jogStepSizes[2],maxFeedRate);
+  portMsg=String.format("$J=G91 Z%.3f F%1.0f\n",jogStepSizes[2],maxFeedRates[2]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button10_click1",0);
 } //_CODE_:button10:565302:
 
 public void button11_click1(GButton source, GEvent event) { //_CODE_:button11:943670:
     /* Z- jog */
   //logNCon("button11 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg=String.format("$J=G91 Z%.3f F%.0f\n",-1.0*jogStepSizes[2],maxFeedRate);
+  portMsg=String.format("$J=G91 Z%.3f F%1.0f\n",-1.0*jogStepSizes[2],maxFeedRates[2]);
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button11_click1",0);
 } //_CODE_:button11:943670:
 
 public void button12_click1(GButton source, GEvent event) { //_CODE_:button12:882627:
     /* Jog Cancel */
-  //logNCon("button12 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button12 - GButton >> GEvent." + event + " @ " + millis(),"button12_click1",1);
   portCode=0x85;
   port.write(portCode);
-  logNConPort(portCode+" which is 0x85 for Jog Cancel");
+  logNConPort(portCode+" which is 0x85 for Jog Cancel.  ","button12_click1",0);
 } //_CODE_:button12:882627:
 
 public void button13_click1(GButton source, GEvent event) { //_CODE_:button13:667400:
   /* $C which is  "Check GCode Mode   no actual movement"  */
-  //logNCon("button13 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button13 - GButton >> GEvent." + event + " @ " + millis(),"button13_click1",1);
   checkGCodeMode=!checkGCodeMode;
   label17.setVisible(checkGCodeMode);    
   portMsg=String.format("$C\n");
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button13_click1",0);
   button29.setText((checkGCodeMode?"Check":"Run")+" File");
   button29.setTextBold();
 } //_CODE_:button13:667400:
 
 public void button14_click1(GButton source, GEvent event) { //_CODE_:button14:592098:
   /* Home X */
-  //logNCon("button14 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button14 - GButton >> GEvent." + event + " @ " + millis(),"button14_click1",1);
   portMsg=String.format("$HX\n");
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button14_click1",0);
 } //_CODE_:button14:592098:
 
 public void button15_click1(GButton source, GEvent event) { //_CODE_:button15:495811:
   /* Home Y */
-  //logNCon("button15 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button15 - GButton >> GEvent." + event + " @ " + millis(),"button15_click1",1);
   portMsg=String.format("$HY\n");
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button15_click1",0);
 } //_CODE_:button15:495811:
 
 public void button16_click1(GButton source, GEvent event) { //_CODE_:button16:216127:
   /* Home Z */
-  //logNCon("button16 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button16 - GButton >> GEvent." + event + " @ " + millis(),"button16_click1",1);
   portMsg=String.format("$HZ\n");
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button16_click1",0);
 } //_CODE_:button16:216127:
 
 public void button17_click1(GButton source, GEvent event) { //_CODE_:button17:359874:
   /* sticky */
-  logNCon("button17 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button17 - GButton >> GEvent." + event + " @ " + millis(),"button17_click1",0);
   button17.setText("Jog Sliders:"+(custom_slider1.isStickToTicks()?"any value":" Decades"));
   custom_slider1.setStickToTicks(!custom_slider1.isStickToTicks());
   custom_slider2.setStickToTicks(!custom_slider2.isStickToTicks());
@@ -174,82 +180,66 @@ public void button17_click1(GButton source, GEvent event) { //_CODE_:button17:35
 
 public void button18_click1(GButton source, GEvent event) { //_CODE_:button18:443664:
   /* $G  GCode parser state */
-  //logNCon("button18 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button18 - GButton >> GEvent." + event + " @ " + millis(),"button18_click1",1);
   portMsg="$G\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button18_click1",0);
 } //_CODE_:button18:443664:
 
 public void button19_click1(GButton source, GEvent event) { //_CODE_:button19:588848:
   /* hold    feed hold  */
-  //logNCon("button19 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button19 - GButton >> GEvent." + event + " @ " + millis(),"button19_click1",1);
   portMsg="!";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button19_click1",0);
 } //_CODE_:button19:588848:
 
 public void button20_click1(GButton source, GEvent event) { //_CODE_:button20:572445:
   /* cycle start */
-  //logNCon("button20 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button20 - GButton >> GEvent." + event + " @ " + millis(),"button20_click1",1);
   portMsg="~";
   port.write(portMsg);
 } //_CODE_:button20:572445:
 
 public void button21_click1(GButton source, GEvent event) { //_CODE_:button21:387580:
-  logNCon("button21 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button21 - GButton >> GEvent." + event + " @ " + millis(),"button21_click1",1);
   log.debug("hit button21 which is Home");
   portMsg="$H\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button21_click1",0);
 } //_CODE_:button21:387580:
 
 public void button23_click1(GButton source, GEvent event) { //_CODE_:button23:769832:
   /* $# to console    get the eprom stored G54-G59 et al */
-  //logNCon("button23 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button23 - GButton >> GEvent." + event + " @ " + millis(),"button23_click1",0);
   hashtagParams2Console();
 } //_CODE_:button23:769832:
 
-public void button24_click1(GButton source, GEvent event) { //_CODE_:button24:237649:
-  /* SetX 871 */
-  //logNCon("button24 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G10 P0 L20 X"+homes2WorkAllPositive[0]+"\n";
-  port.write(portMsg);
-  logNConPort(portMsg);
-} //_CODE_:button24:237649:
-
 public void button25_click1(GButton source, GEvent event) { //_CODE_:button25:326749:
   /* $$ get settings  */
-  //logNCon("button25 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button25 - GButton >> GEvent." + event + " @ " + millis(),"button25_click1",1);
   portMsg="$$\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button25_click1",0);
 } //_CODE_:button25:326749:
 
 public void button26_click1(GButton source, GEvent event) { //_CODE_:button26:780178:
   /* $I version and options modified in config.h */
-  //logNCon("button26 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button26 - GButton >> GEvent." + event + " @ " + millis(),"button26_click1",1);
   portMsg="$I\n";
   port.write(portMsg);
-  logNConPort(portMsg);
+  logNConPort(portMsg,"button26_click1",0);
 } //_CODE_:button26:780178:
-
-public void button27_click1(GButton source, GEvent event) { //_CODE_:button27:497951:
-  /* GoTo 861.5 */
-  //logNCon("button27 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G1 X"+homes2WorkAllPositive[0]+" F500\n";
-  port.write(portMsg);
-  logNConPort(portMsg); 
-} //_CODE_:button27:497951:
 
 public void button28_click1(GButton source, GEvent event) { //_CODE_:button28:479591:
   /* Select File */
-  //logNCon("button28 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button28 - GButton >> GEvent." + event + " @ " + millis(),"button27_click1",1);
   selectInput("Select a file to process:", "fileSelected");
 } //_CODE_:button28:479591:
 
 public void button29_click1(GButton source, GEvent event) { //_CODE_:button29:780174:
   /* Run File  or  Check File */
-  //logNCon("button29 - GButton >> GEvent." + event + " @ " + millis());
+  //logNCon("button29 - GButton >> GEvent." + event + " @ " + millis(),"button29_click1",0);
   if(streaming) { 
     label22.setText("Allready streaming.  Multiple requests not allowed.");
   } else{
@@ -258,7 +248,7 @@ public void button29_click1(GButton source, GEvent event) { //_CODE_:button29:78
     numErrors=0;
     numRowsConfirmedProcessed=0;
     String fid=textfield2.getText();
-    logNCon("about to start streaming with checkGCodeMode="+(checkGCodeMode?"true ":"false")+" on fid="+fid);
+    logNCon("about to start streaming with checkGCodeMode="+(checkGCodeMode?"true ":"false")+" on fid="+fid,"button29_click1",1);
     numRows=0;
     rowCounter=0;
     try {
@@ -267,7 +257,7 @@ public void button29_click1(GButton source, GEvent event) { //_CODE_:button29:78
         rowCounter++;
       }
       numRows=rowCounter;
-      logNCon("numRows ="+numRows);
+      logNCon("numRows ="+numRows,"button29_click1",2);
       br.close();
       br = Files.newBufferedReader(Paths.get(fid)); 
     } catch (IOException e) {
@@ -278,60 +268,28 @@ public void button29_click1(GButton source, GEvent event) { //_CODE_:button29:78
   bufferedReaderSet=true;
 } //_CODE_:button29:780174:
 
-public void button30_click1(GButton source, GEvent event) { //_CODE_:button30:567279:
-  /* SetX 871 */
-  //logNCon("button30 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G10 P0 L20 Y"+homes2WorkAllPositive[1]+"\n";
-  port.write(portMsg);
-  logNConPort(portMsg);
-} //_CODE_:button30:567279:
-
-public void button31_click1(GButton source, GEvent event) { //_CODE_:button31:294771:
-  /* GoTo 861.5 */
-  //logNCon("button31 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G1 Y"+homes2WorkAllPositive[1]+" F500\n";
-  port.write(portMsg);
-  logNConPort(portMsg);
-} //_CODE_:button31:294771:
-
-public void button32_click1(GButton source, GEvent event) { //_CODE_:button32:675398:
-  /* SetX 871 */
-  //logNCon("button32 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G10 P0 L20 Z"+homes2WorkAllPositive[2]+"\n";
-  port.write(portMsg);
-  logNConPort(portMsg);
-} //_CODE_:button32:675398:
-
-public void button33_click1(GButton source, GEvent event) { //_CODE_:button33:449443:
-    /* GoTo 861.5 */
-  //logNCon("button33 - GButton >> GEvent." + event + " @ " + millis());
-  portMsg="G1 Z"+homes2WorkAllPositive[2]+" F500\n";
-  port.write(portMsg);
-  logNConPort(portMsg);
-} //_CODE_:button33:449443:
-
 public void textfield1_change1(GTextField source, GEvent event) { //_CODE_:textfield1:453045:
-  //logNCon("textfield1 - GTextField >> GEvent." + event + " @ " + millis());
+  //logNCon("textfield1 - GTextField >> GEvent." + event + " @ " + millis(),"textfield1_change1",0);
 } //_CODE_:textfield1:453045:
 
 public void textfield2_change1(GTextField source, GEvent event) { //_CODE_:textfield2:310946:
-  logNCon("textfield2 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield2 - GTextField >> GEvent." + event + " @ " + millis(),"textfield2_change1",0);
 } //_CODE_:textfield2:310946:
 
 public void textfield3_change1(GTextField source, GEvent event) { //_CODE_:textfield3:836285:
-  logNCon("textfield3 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield3 - GTextField >> GEvent." + event + " @ " + millis(),"textfield3_change1",0);
 } //_CODE_:textfield3:836285:
 
 public void textfield4_change1(GTextField source, GEvent event) { //_CODE_:textfield4:484938:
-  logNCon("textfield4 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield4 - GTextField >> GEvent." + event + " @ " + millis(),"textfield4_change1",0);
 } //_CODE_:textfield4:484938:
 
 public void textfield5_change1(GTextField source, GEvent event) { //_CODE_:textfield5:314240:
-  logNCon("textfield5 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield5 - GTextField >> GEvent." + event + " @ " + millis(),"textfield5_change1",0);
 } //_CODE_:textfield5:314240:
 
 public void textfield6_change1(GTextField source, GEvent event) { //_CODE_:textfield6:773759:
-  logNCon("textfield6 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield6 - GTextField >> GEvent." + event + " @ " + millis(),"textfield6_change1",0);
 } //_CODE_:textfield6:773759:
 
 public void custom_slider1_change1(GCustomSlider source, GEvent event) { //_CODE_:custom_slider1:458552:
@@ -350,19 +308,68 @@ public void custom_slider3_change1(GCustomSlider source, GEvent event) { //_CODE
 } //_CODE_:custom_slider3:534603:
 
 public void button34_click1(GButton source, GEvent event) { //_CODE_:button34:642288:
-
+  logNCon("button to set X accel. Note this is sticy, it modifies the $120 within grbl.","button34_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(120==grblSettingIndices[ii]){
+      try {
+         grblSettings[ii]=  textfield4.getText();
+         msg="$120="+textfield4.getText()+"\n";
+         port.write(msg);
+         logNConPort(msg,"button34_click1",3);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
 } //_CODE_:button34:642288:
 
 public void button35_click1(GButton source, GEvent event) { //_CODE_:button35:779492:
-
+  logNCon("button to set Y accel.  Note this is sticy, it modifies the $121 within grbl.","button35_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(121==grblSettingIndices[ii]){
+      try {
+         grblSettings[ii]=  textfield5.getText();
+         msg="$121="+textfield5.getText()+"\n";
+         port.write(msg);
+         logNConPort(msg,"button35_click1",3);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
 } //_CODE_:button35:779492:
 
 public void button36_click1(GButton source, GEvent event) { //_CODE_:button36:585904:
-
+  logNCon("button to set Z accel.  Note this is sticy, it modifies the $122 within grbl.","button36_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(122==grblSettingIndices[ii]){
+      try {
+         grblSettings[ii]=  textfield6.getText();
+         msg="$122="+textfield6.getText()+"\n";
+         port.write(msg);
+         logNConPort(msg,"button36_click1",3);
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
 } //_CODE_:button36:585904:
 
 public void button37_click1(GButton source, GEvent event) { //_CODE_:button37:731526:
-
+  logNCon("button to set X speed.  Note this is NOT sticy... it Does not change the grbl $110","button37_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(110==grblSettingIndices[ii]){
+      try {
+         maxFeedRates[0]=Float.valueOf(textfield3.getText());
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
 } //_CODE_:button37:731526:
 
 public void button38_click1(GButton source, GEvent event) { //_CODE_:button38:722903:
@@ -385,42 +392,163 @@ public void button39_click1(GButton source, GEvent event) { //_CODE_:button39:52
 } //_CODE_:button39:521786:
 
 public void textfield7_change1(GTextField source, GEvent event) { //_CODE_:textfield7:368417:
-  logNCon("textfield7 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield7 - GTextField >> GEvent." + event + " @ " + millis(),"textfield7_change1",0);
 } //_CODE_:textfield7:368417:
 
 public void textfield8_change1(GTextField source, GEvent event) { //_CODE_:textfield8:301063:
-  logNCon("textfield8 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield8 - GTextField >> GEvent." + event + " @ " + millis(),"textfield8_change1",0);
 } //_CODE_:textfield8:301063:
 
 public void textfield9_change1(GTextField source, GEvent event) { //_CODE_:textfield9:718169:
-  logNCon("textfield9 - GTextField >> GEvent." + event + " @ " + millis());
+  logNCon("textfield9 - GTextField >> GEvent." + event + " @ " + millis(),"textfield9_change1",0);
 } //_CODE_:textfield9:718169:
 
 public void button40_click1(GButton source, GEvent event) { //_CODE_:button40:921130:
-  logNCon("button40 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button40 - GButton >> GEvent." + event + " @ " + millis(),"button40_click1",0);
+  try {
+    boolean decades=button17.getText().equals("Jog Sliders: Decades");
+    float val=Float.valueOf(textfield7.getText());
+    double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+    log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+    if(  (0.0 != mantissa)
+       &&(decades)
+      ){
+      log.debug("inside trigger");
+      button17_click1(button17, GEvent.CLICKED);
+      custom_slider1.setStickToTicks(false);
+      custom_slider2.setStickToTicks(false);
+      custom_slider3.setStickToTicks(false);
+    }    
+    custom_slider1.setValue((float)Math.log10(val));
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
 } //_CODE_:button40:921130:
 
 public void button41_click1(GButton source, GEvent event) { //_CODE_:button41:878589:
-  logNCon("button41 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button41 - GButton >> GEvent." + event + " @ " + millis(),"button41_click1",0);
+  try {
+    boolean decades=button17.getText().equals("Jog Sliders: Decades");
+    float val=Float.valueOf(textfield8.getText());
+    double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+    log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+    if(  (0.0 != mantissa)
+       &&(decades)
+      ){
+      log.debug("inside trigger");
+      button17_click1(button17, GEvent.CLICKED);
+      custom_slider1.setStickToTicks(false);
+      custom_slider2.setStickToTicks(false);
+      custom_slider3.setStickToTicks(false);
+    }    
+    custom_slider2.setValue((float)Math.log10(val));
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
 } //_CODE_:button41:878589:
 
 public void button42_click1(GButton source, GEvent event) { //_CODE_:button42:497621:
-  logNCon("button42 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button42 - GButton >> GEvent." + event + " @ " + millis(),"button42_click1",0);  
+  try {
+    boolean decades=button17.getText().equals("Jog Sliders: Decades");
+    float val=Float.valueOf(textfield9.getText());
+    double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+    log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+    if(  (0.0 != mantissa)
+       &&(decades)
+      ){
+      log.debug("inside trigger");
+      button17_click1(button17, GEvent.CLICKED);
+      custom_slider1.setStickToTicks(false);
+      custom_slider2.setStickToTicks(false);
+      custom_slider3.setStickToTicks(false);
+    }    
+    custom_slider3.setValue((float)Math.log10(val));
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
 } //_CODE_:button42:497621:
 
 public void button43_click1(GButton source, GEvent event) { //_CODE_:button43:434828:
-  logNCon("button43 - GButton >> GEvent." + event + " @ " + millis());
-  String msg=textfield1.getText()+"\n";
+  logNCon("button43 - GButton >> GEvent." + event + " @ " + millis(),"button43_click1",0);
+  msg=textfield1.getText()+"\n";
   port.write(msg);
-  logNConPort(msg);
+  logNConPort(msg,"button43_click1",0);
+  logNConPort("|"+textfield1.getText().substring(0,4)+"|","button43_click1",1);
+  logNConPort("|"+textfield1.getText().substring(4)+"|","button43_click1",2);
+  if(textfield1.getText().substring(0,4).equals("$110=")){
+    textfield3.setText(textfield1.getText().substring(4));
+    maxFeedRates[0]=Float.valueOf(textfield1.getText().substring(4));
+  }
 } //_CODE_:button43:434828:
 
 public void button44_click1(GButton source, GEvent event) { //_CODE_:button44:520328:
-  //logNCon("button44 - GButton >> GEvent." + event + " @ " + millis());
-  String msg="G10 P0 L20 X0 Y0 Z0 \n";
+  //logNCon("button44 - GButton >> GEvent." + event + " @ " + millis(),"button44_click1",0);
+  msg="G10 P"+currentWCO+" L20 X0 Y0 Z0 \n";
   port.write(msg);
-  logNConPort(msg);
+  logNConPort(msg,"button43_click1",0);
 } //_CODE_:button44:520328:
+
+public void button45_click1(GButton source, GEvent event) { //_CODE_:button45:782287:
+  //println("button45 - GButton >> GEvent." + event + " @ " + millis(),"button45_click1",0);
+  logNCon("button to set Y speed.  Note this is NOT sticy... it Does not change the grbl $111","button45_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(111==grblSettingIndices[ii]){
+      try {
+         maxFeedRates[1]=Float.valueOf(textfield10.getText());
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
+} //_CODE_:button45:782287:
+
+public void button46_click1(GButton source, GEvent event) { //_CODE_:button46:803781:
+  //println("button46 - GButton >> GEvent." + event + " @ " + millis(),"button46_click1",0);
+  logNCon("button to set Z speed.  Note this is NOT sticy... it Does not change the grbl $112","button34_click1",0);
+  for(int ii=0;ii<grblSettings.length;ii++){
+    if(112==grblSettingIndices[ii]){
+      try {
+         maxFeedRates[2]=Float.valueOf(textfield11.getText());
+      } catch (NumberFormatException nfe) {
+        logNCon("NumberFormatException: " + nfe.getMessage(),"button34_click1",2);
+        System.err.println("NumberFormatException: " + nfe.getMessage());
+      }
+    }
+  }
+} //_CODE_:button46:803781:
+
+public void textfield10_change1(GTextField source, GEvent event) { //_CODE_:textfield10:580428:
+  println("textfield10 - GTextField >> GEvent." + event + " @ " + millis(),"textfield10_change1",0);
+} //_CODE_:textfield10:580428:
+
+public void textfield11_change1(GTextField source, GEvent event) { //_CODE_:textfield11:439011:
+  println("textfield11 - GTextField >> GEvent." + event + " @ " + millis(),"textfield11_change1",0);
+} //_CODE_:textfield11:439011:
+
+public void textfield12_change1(GTextField source, GEvent event) { //_CODE_:textfield12:819569:
+  println("textfield12 - GTextField >> GEvent." + event + " @ " + millis());
+} //_CODE_:textfield12:819569:
+
+public void button24_click1(GButton source, GEvent event) { //_CODE_:button24:395857:
+  //println("button24 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("button to change Work Coordinate System (WCO) to "+textfield12.getValueI(),"button34_click1",0);
+  //int priorWCO=currentWCO;
+  try {
+    currentWCO=textfield12.getValueI();    
+    label1 .setText(String.format("W%dXYZ:",currentWCO));
+    msg="G10 P"+currentWCO+" \n";
+    port.write(msg);
+    logNConPort(msg,"button24_click1",1);
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button24_click1",2);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
+} //_CODE_:button24:395857:
 
 
 
@@ -435,7 +563,7 @@ public void createGUI(){
   G4P.setInputFont("Monospaced", G4P.PLAIN, 20);
   G4P.setSliderFont("Arial", G4P.PLAIN, 20);
   surface.setTitle("Sketch Window");
-  button22 = new GButton(this, 10, 800, 290, 30);
+  button22 = new GButton(this, 283, 803, 290, 37);
   button22.setText("Still Initializing");
   button22.setLocalColorScheme(GCScheme.CYAN_SCHEME);
   button22.addEventHandler(this, "button22_click1");
@@ -443,7 +571,7 @@ public void createGUI(){
   button1.setText("X-");
   button1.setLocalColorScheme(GCScheme.CYAN_SCHEME);
   button1.addEventHandler(this, "button1_click1");
-  button2 = new GButton(this, 110, 130, 40, 40);
+  button2 = new GButton(this, 110, 131, 40, 40);
   button2.setText("X+");
   button2.setLocalColorScheme(GCScheme.CYAN_SCHEME);
   button2.addEventHandler(this, "button2_click1");
@@ -487,15 +615,15 @@ public void createGUI(){
   button13 = new GButton(this, 440, 160, 60, 30);
   button13.setText("$C");
   button13.addEventHandler(this, "button13_click1");
-  button14 = new GButton(this, 151, 543, 130, 30);
+  button14 = new GButton(this, 152, 597, 130, 30);
   button14.setText("Home X");
   button14.setLocalColorScheme(GCScheme.SCHEME_9);
   button14.addEventHandler(this, "button14_click1");
-  button15 = new GButton(this, 328, 540, 130, 30);
+  button15 = new GButton(this, 317, 597, 130, 30);
   button15.setText("Home Y");
   button15.setLocalColorScheme(GCScheme.SCHEME_9);
   button15.addEventHandler(this, "button15_click1");
-  button16 = new GButton(this, 513, 541, 130, 30);
+  button16 = new GButton(this, 489, 596, 130, 30);
   button16.setText("Home Z");
   button16.setLocalColorScheme(GCScheme.SCHEME_9);
   button16.addEventHandler(this, "button16_click1");
@@ -519,37 +647,19 @@ public void createGUI(){
   button23 = new GButton(this, 300, 200, 60, 30);
   button23.setText("$#");
   button23.addEventHandler(this, "button23_click1");
-  button24 = new GButton(this, 129, 642, 160, 30);
-  button24.setText("Set X");
-  button24.addEventHandler(this, "button24_click1");
   button25 = new GButton(this, 368, 160, 60, 30);
   button25.setText("$$");
   button25.addEventHandler(this, "button25_click1");
   button26 = new GButton(this, 370, 200, 60, 30);
   button26.setText("$I");
   button26.addEventHandler(this, "button26_click1");
-  button27 = new GButton(this, 127, 679, 162, 30);
-  button27.setText("GoTo X");
-  button27.addEventHandler(this, "button27_click1");
   button28 = new GButton(this, 750, 641, 141, 30);
   button28.setText("Select File");
   button28.addEventHandler(this, "button28_click1");
   button29 = new GButton(this, 750, 678, 141, 30);
   button29.setText("Run File");
   button29.addEventHandler(this, "button29_click1");
-  button30 = new GButton(this, 318, 642, 150, 30);
-  button30.setText("Set Y");
-  button30.addEventHandler(this, "button30_click1");
-  button31 = new GButton(this, 317, 679, 150, 30);
-  button31.setText("GoTo Y");
-  button31.addEventHandler(this, "button31_click1");
-  button32 = new GButton(this, 496, 642, 150, 30);
-  button32.setText("Set Z");
-  button32.addEventHandler(this, "button32_click1");
-  button33 = new GButton(this, 497, 679, 150, 30);
-  button33.setText("GoTo Z");
-  button33.addEventHandler(this, "button33_click1");
-  label1 = new GLabel(this, 10, 240, 80, 20);
+  label1 = new GLabel(this, 10, 241, 80, 20);
   label1.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
   label1.setText("W XYZ:");
   label1.setOpaque(false);
@@ -634,12 +744,12 @@ public void createGUI(){
   label23.setText("X Limit: Off");
   label23.setLocalColorScheme(GCScheme.SCHEME_9);
   label23.setOpaque(false);
-  label24 = new GLabel(this, 328, 571, 130, 20);
+  label24 = new GLabel(this, 319, 570, 130, 20);
   label24.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
   label24.setText("Y Limit: Off");
   label24.setLocalColorScheme(GCScheme.SCHEME_9);
   label24.setOpaque(false);
-  label25 = new GLabel(this, 513, 571, 130, 19);
+  label25 = new GLabel(this, 489, 569, 130, 19);
   label25.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
   label25.setText("Z Limit: Off");
   label25.setLocalColorScheme(GCScheme.SCHEME_9);
@@ -664,16 +774,16 @@ public void createGUI(){
   textfield2 = new GTextField(this, 82, 721, 813, 30, G4P.SCROLLBARS_NONE);
   textfield2.setOpaque(true);
   textfield2.addEventHandler(this, "textfield2_change1");
-  textfield3 = new GTextField(this, 822, 434, 68, 30, G4P.SCROLLBARS_NONE);
+  textfield3 = new GTextField(this, 214, 491, 68, 30, G4P.SCROLLBARS_NONE);
   textfield3.setOpaque(true);
   textfield3.addEventHandler(this, "textfield3_change1");
-  textfield4 = new GTextField(this, 228, 606, 60, 30, G4P.SCROLLBARS_NONE);
+  textfield4 = new GTextField(this, 222, 523, 60, 30, G4P.SCROLLBARS_NONE);
   textfield4.setOpaque(true);
   textfield4.addEventHandler(this, "textfield4_change1");
-  textfield5 = new GTextField(this, 409, 606, 60, 30, G4P.SCROLLBARS_NONE);
+  textfield5 = new GTextField(this, 398, 524, 60, 30, G4P.SCROLLBARS_NONE);
   textfield5.setOpaque(true);
   textfield5.addEventHandler(this, "textfield5_change1");
-  textfield6 = new GTextField(this, 586, 606, 60, 30, G4P.SCROLLBARS_NONE);
+  textfield6 = new GTextField(this, 583, 524, 60, 30, G4P.SCROLLBARS_NONE);
   textfield6.setOpaque(true);
   textfield6.addEventHandler(this, "textfield6_change1");
   custom_slider1 = new GCustomSlider(this, 121, 383, 163, 30, "green_red20px");
@@ -700,23 +810,23 @@ public void createGUI(){
   custom_slider3.setNumberFormat(G4P.DECIMAL, 1);
   custom_slider3.setOpaque(false);
   custom_slider3.addEventHandler(this, "custom_slider3_change1");
-  button34 = new GButton(this, 129, 606, 101, 30);
+  button34 = new GButton(this, 127, 524, 96, 30);
   button34.setText("Set Accel");
   button34.setLocalColorScheme(GCScheme.SCHEME_9);
   button34.addEventHandler(this, "button34_click1");
-  button35 = new GButton(this, 317, 606, 96, 30);
+  button35 = new GButton(this, 301, 524, 96, 30);
   button35.setText("Set Accel");
   button35.setLocalColorScheme(GCScheme.SCHEME_9);
   button35.addEventHandler(this, "button35_click1");
-  button36 = new GButton(this, 496, 606, 93, 30);
+  button36 = new GButton(this, 486, 524, 96, 30);
   button36.setText("Set Accel");
   button36.setLocalColorScheme(GCScheme.SCHEME_9);
   button36.addEventHandler(this, "button36_click1");
-  button37 = new GButton(this, 732, 434, 89, 30);
+  button37 = new GButton(this, 127, 490, 85, 30);
   button37.setText("Set Feed");
   button37.setLocalColorScheme(GCScheme.SCHEME_9);
   button37.addEventHandler(this, "button37_click1");
-  button38 = new GButton(this, 4, 539, 145, 55);
+  button38 = new GButton(this, 5, 573, 145, 55);
   button38.setText("Individual axis homing");
   button38.setLocalColorScheme(GCScheme.SCHEME_9);
   button38.addEventHandler(this, "button38_click1");
@@ -738,7 +848,7 @@ public void createGUI(){
   textfield9 = new GTextField(this, 490, 420, 154, 30, G4P.SCROLLBARS_NONE);
   textfield9.setOpaque(true);
   textfield9.addEventHandler(this, "textfield9_change1");
-  button40 = new GButton(this, 126, 455, 154, 30);
+  button40 = new GButton(this, 127, 456, 154, 30);
   button40.setText("Set X Jog");
   button40.setLocalColorScheme(GCScheme.SCHEME_9);
   button40.addEventHandler(this, "button40_click1");
@@ -746,17 +856,39 @@ public void createGUI(){
   button41.setText("Set Y Jog");
   button41.setLocalColorScheme(GCScheme.SCHEME_9);
   button41.addEventHandler(this, "button41_click1");
-  button42 = new GButton(this, 490, 455, 154, 30);
+  button42 = new GButton(this, 491, 454, 154, 30);
   button42.setText("Set Z Jog");
   button42.setLocalColorScheme(GCScheme.SCHEME_9);
   button42.addEventHandler(this, "button42_click1");
-  button43 = new GButton(this, 334, 798, 219, 30);
+  button43 = new GButton(this, 33, 802, 219, 38);
   button43.setText("Execute Command");
   button43.addEventHandler(this, "button43_click1");
   button44 = new GButton(this, 1, 314, 126, 30);
   button44.setText("Reset XYZ");
   button44.setLocalColorScheme(GCScheme.SCHEME_9);
   button44.addEventHandler(this, "button44_click1");
+  button45 = new GButton(this, 302, 490, 85, 30);
+  button45.setText("Set Feed");
+  button45.setLocalColorScheme(GCScheme.SCHEME_9);
+  button45.addEventHandler(this, "button45_click1");
+  button46 = new GButton(this, 486, 489, 85, 30);
+  button46.setText("Set Feed");
+  button46.setLocalColorScheme(GCScheme.SCHEME_9);
+  button46.addEventHandler(this, "button46_click1");
+  textfield10 = new GTextField(this, 389, 490, 68, 30, G4P.SCROLLBARS_NONE);
+  textfield10.setOpaque(true);
+  textfield10.addEventHandler(this, "textfield10_change1");
+  textfield11 = new GTextField(this, 573, 489, 68, 30, G4P.SCROLLBARS_NONE);
+  textfield11.setOpaque(true);
+  textfield11.addEventHandler(this, "textfield11_change1");
+  textfield12 = new GTextField(this, 625, 200, 25, 30, G4P.SCROLLBARS_NONE);
+  textfield12.setText("1");
+  textfield12.setOpaque(true);
+  textfield12.addEventHandler(this, "textfield12_change1");
+  button24 = new GButton(this, 520, 200, 100, 30);
+  button24.setText("Set WCO");
+  button24.setLocalColorScheme(GCScheme.SCHEME_9);
+  button24.addEventHandler(this, "button24_click1");
 }
 
 // Variable declarations 
@@ -784,16 +916,10 @@ GButton button19;
 GButton button20; 
 GButton button21; 
 GButton button23; 
-GButton button24; 
 GButton button25; 
 GButton button26; 
-GButton button27; 
 GButton button28; 
 GButton button29; 
-GButton button30; 
-GButton button31; 
-GButton button32; 
-GButton button33; 
 GLabel label1; 
 GLabel label2; 
 GLabel label3; 
@@ -843,3 +969,9 @@ GButton button41;
 GButton button42; 
 GButton button43; 
 GButton button44; 
+GButton button45; 
+GButton button46; 
+GTextField textfield10; 
+GTextField textfield11; 
+GTextField textfield12; 
+GButton button24; 

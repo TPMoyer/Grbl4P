@@ -53,18 +53,22 @@ boolean priorStatusHadPn = false;
 boolean individualHomesEnabled=false;
 int     spindleSpeed     = 0;
 String  lastMessage      = "";
-float   maxFeedRate      = 300;
+//float   maxFeedRate      = 300;
 float   feedRate         = 0.;
-float   minMaxFeedRate   = 1000000.;
+//float   minMaxFeedRate   = 1000000.;
 boolean heartBeat        = true;
 int     frameModulo      = 0;
 int     frameRateLimit   = 10;
 int     idleCount        =0; /* limit the number of unchanging reports which get logged */
 int     alarmCount       =0; /* limit the number of unchanging reports which get logged */
-float [] mPos = new float[3];
-float [] wco  = new float[3];
-float [] ov   = new float[3];
+int     currentWCO       =1; /* this corresponds to G54 */
+float []           mPos = new float[3]; /* machine position */
+float []           wco  = new float[3]; /* work co-ordinates */
+float []           ov   = new float[3]; /* nfi (no bleeding idea) */
+float [] maxFeedRates   = new float[3];
 float [][] gParams = new float[11][3];
+boolean sayIdle=true;
+
 float [] jogStepSizes = {1.,1.,1.,1.,1.,1.};
 float [] homes2WorkAllPositive = new float[3];
 String[] grblSettings = null; /* save these as strings to avoid the    "some are ints, some are floats"    difficulties in printing */
@@ -74,12 +78,14 @@ Map<String,String>mGrblSettings = new HashMap<String,String>();
 int numRows=0;
 int rowCounter=0;
 double  timeOut=10.0;
+String msg="";
 
 /* streaming variables. Triggered within the gui, updated within the SerialEvent handlers */
 String fid="";
 boolean   streaming                 = false;
 int       numOKs                    = 0;
 int       numErrors                 = 0;
+int       priorNumErrors                 = 0;
 boolean   bufferedReaderSet         = false;
 int       numRowsConfirmedProcessed = 0;
 final int bufferSize                = 128; /* size of the grbl input buffer */
@@ -116,11 +122,14 @@ void setup(){
 }
 /**********************************************************************************************************/
 void draw(){
+  log.debug("draw 0");
   background(212,208,200);
   surface.setTitle(frameTitle+"    "+round(frameRate) + " fps "+(heartBeat?"+":"-"));
+  /* when this "ask for status" was 10 hz, would occasionally get a null error somewhere down inside the GUI from G4P code (source==unknown) */
   if(0==frameModulo){
+    log.debug("frameModulo says ask for status");
     port.write("?");
-    //logNCon("cnc1 wrote ?");    
+    //logNCon("cnc1 wrote ?","draw",0);    
   }
   
   if(frameRateLimit==frameCount%(frameRateLimit+1))heartBeat=!heartBeat;
@@ -128,13 +137,16 @@ void draw(){
   if(  streaming ){
     frameModulo=(frameModulo+1)%frameRateLimit;  /* limit the status request to 1hz while streaming */
   } else {  
-    frameModulo=(5>=(round(frameRate)/5)?0:((frameModulo+1)%(round(frameRate)/5))); /* limit the status request to about 5hz */
+    //frameModulo=(5>=(round(frameRate)/5)?0:((frameModulo+1)%(round(frameRate)/5))); /* limit the status request to about 5hz */
+    frameModulo=(frameModulo+1)%(round(frameRate)/5);
   }   
 
   if(  ( ! seeGrbl)
    &&(timeOut < Duration.between(appStart,Instant.now()).toMillis()/1000)
   ){
-    logNCon(String.format("unable to get a response on any port after %7.3f seconds\n                      exiting",timeOut));
+    logNCon(String.format("unable to get a response on any port after %7.3f seconds\n                      exiting",timeOut),"draw",1);
     System.exit(1);
   }
+  //log.debug("draw 1 with frameModulo="+frameModulo+" divisor="+round(frameRate)/5);
+  log.debug("draw 1 with frameModulo="+frameModulo+" divisor="+round(frameRate)/5);
 }

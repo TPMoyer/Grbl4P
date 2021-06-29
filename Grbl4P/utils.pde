@@ -6,7 +6,8 @@ void initLog4j(){
   //String masterPattern = "[%c{1}], %d{HH:mm:ss}, %-5p, {%C}, %m%n";
   //String masterPattern = "%-5p %8r %3L %c{1} - %m%n";  
   //String masterPattern = "%-5p - %m%n"; /* source - message */
-  String masterPattern = "%-5p %8r - %m%n"; /* source miliseconds - message *?  */
+  //String masterPattern = "%-5p %8r - %m%n"; /* source miliseconds - message *?  */
+  String masterPattern = "%-5p %8r %M - %m%n"; /* source miliseconds - message *?  */
   
   SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd.HH_mm_ss");
   String logFileNamePrepender= String.format("%s_",sdf.format(new Date()));
@@ -15,7 +16,7 @@ void initLog4j(){
   /* the following line is instanced in the header for the main processing app, so as to have app wide scope */
   //Logger log  = Logger.getLogger("Master"); /* Thank you Jake Seigel   https://jestermax.wordpress.com/2014/06/09/log4j-4-you/   */
   FileAppender fa0 = new FileAppender();
-  String fileName="Grbl_Logger.log";
+  //String fileName="Grbl_Logger.log";
   fa0.setFile((System.getProperty("os.name").toLowerCase().startsWith("win")?"c:\\logs\\":sketchPath("/home/pi/logs/"))+logFileNamePrepender+logFileNameEndPart);  
   fa0.setLayout(new PatternLayout(masterPattern));
   fa0.setThreshold(Level.DEBUG);

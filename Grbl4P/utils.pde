@@ -7,7 +7,7 @@ void initLog4j(){
   //String masterPattern = "%-5p %8r %3L %c{1} - %m%n";  
   //String masterPattern = "%-5p - %m%n"; /* source - message */
   //String masterPattern = "%-5p %8r - %m%n"; /* source miliseconds - message *?  */
-  String masterPattern = "%-5p %8r %M - %m%n"; /* source miliseconds - message *?  */
+  String masterPattern = "%-5p %8r %M - %m%n"; /* priority miliseconds Originating_Method  - message *?  */
   
   SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd.HH_mm_ss");
   String logFileNamePrepender= String.format("%s_",sdf.format(new Date()));
@@ -32,7 +32,8 @@ void initLog4j(){
   log.error("log checking ability to write at error level");
   log.fatal("log checking ability to write at fatal level\nIf you see this in the Eclipse console, your log4j2.xml was not active (it should be in /src/main/resources)\n");
   try{
-    log.fatal("this log file was created by "+System.getProperty("sun.java.command").substring(System.getProperty("sun.java.command").indexOf("path=")+5));
+    log.info("this log file was created by "+System.getProperty("sun.java.command").substring(System.getProperty("sun.java.command").indexOf("path=")+5));
+    log.info(System.getProperty("sun.java.command"));
    } catch (Exception e) {
     e.printStackTrace();
   }

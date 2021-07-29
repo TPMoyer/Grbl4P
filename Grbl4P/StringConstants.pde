@@ -35,6 +35,7 @@ String [] grblSettingTexts = {
 "Y Max travel, mm",
 "Z Max travel, mm"
 };
+String [] ePROM_reads_or_writes={"G10", "L20", "G28", "G30", "$", "G54", "G56", "G57", "G58", "G59"};
 String [] alarms = {
 "Hard limit triggered. Machine position is likely lost due to sudden and immediate halt. Re-homing is highly recommended.",
 "G-code motion target exceeds machine travel. Machine position safely retained. Alarm may be unlocked.",

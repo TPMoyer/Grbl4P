@@ -72,7 +72,7 @@ public void button6_click1(GButton source, GEvent event) { //_CODE_:button6:9965
   /* kill alarm lock */
   portMsg="$X\n";
   port.write(portMsg);
-  logNConPort(portMsg,"button6_click1",0);
+  logNConPort(portMsg,"button6_click1 (Kill Alarm Lock)",0);
  } //_CODE_:button6:996513:
 
 public void button7_click1(GButton source, GEvent event) { //_CODE_:button7:509439:
@@ -136,30 +136,6 @@ public void button13_click1(GButton source, GEvent event) { //_CODE_:button13:66
   button29.setTextBold();
 } //_CODE_:button13:667400:
 
-public void button14_click1(GButton source, GEvent event) { //_CODE_:button14:592098:
-  /* Home X */
-  //logNCon("button14 - GButton >> GEvent." + event + " @ " + millis(),"button14_click1",1);
-  portMsg=String.format("$HX\n");
-  port.write(portMsg);
-  logNConPort(portMsg,"button14_click1",0);
-} //_CODE_:button14:592098:
-
-public void button15_click1(GButton source, GEvent event) { //_CODE_:button15:495811:
-  /* Home Y */
-  //logNCon("button15 - GButton >> GEvent." + event + " @ " + millis(),"button15_click1",1);
-  portMsg=String.format("$HY\n");
-  port.write(portMsg);
-  logNConPort(portMsg,"button15_click1",0);
-} //_CODE_:button15:495811:
-
-public void button16_click1(GButton source, GEvent event) { //_CODE_:button16:216127:
-  /* Home Z */
-  //logNCon("button16 - GButton >> GEvent." + event + " @ " + millis(),"button16_click1",1);
-  portMsg=String.format("$HZ\n");
-  port.write(portMsg);
-  logNConPort(portMsg,"button16_click1",0);
-} //_CODE_:button16:216127:
-
 public void button17_click1(GButton source, GEvent event) { //_CODE_:button17:359874:
   /* sticky */
   logNCon("button17 - GButton >> GEvent." + event + " @ " + millis(),"button17_click1",0);
@@ -176,6 +152,9 @@ public void button17_click1(GButton source, GEvent event) { //_CODE_:button17:35
     jogStepSizes[2]=(float)Math.pow(10.,custom_slider3.getValueF());
     label13.setText(String.format("%11.3f )",jogStepSizes[2]));
   }
+  textfield7.setText("");
+  textfield8.setText("");
+  textfield9.setText("");
 } //_CODE_:button17:359874:
 
 public void button18_click1(GButton source, GEvent event) { //_CODE_:button18:443664:
@@ -206,7 +185,7 @@ public void button21_click1(GButton source, GEvent event) { //_CODE_:button21:38
   log.debug("hit button21 which is Home");
   portMsg="$H\n";
   port.write(portMsg);
-  logNConPort(portMsg,"button21_click1",0);
+  logNConPort(portMsg,"button21_click1 (Home)",0);
 } //_CODE_:button21:387580:
 
 public void button23_click1(GButton source, GEvent event) { //_CODE_:button23:769832:
@@ -295,16 +274,19 @@ public void textfield6_change1(GTextField source, GEvent event) { //_CODE_:textf
 public void custom_slider1_change1(GCustomSlider source, GEvent event) { //_CODE_:custom_slider1:458552:
   jogStepSizes[0]=(float)Math.pow(10.,custom_slider1.getValueF());
   label5.setText(String.format("(%11.3f,",jogStepSizes[0]));
+  textfield7.setText("");
 } //_CODE_:custom_slider1:458552:
 
 public void custom_slider2_change1(GCustomSlider source, GEvent event) { //_CODE_:custom_slider2:439288:
   jogStepSizes[1]=(float)Math.pow(10.,custom_slider2.getValueF());
   label12.setText(String.format("%11.3f,",jogStepSizes[1]));
+  textfield8.setText("");
 } //_CODE_:custom_slider2:439288:
 
 public void custom_slider3_change1(GCustomSlider source, GEvent event) { //_CODE_:custom_slider3:534603:
   jogStepSizes[2]=(float)Math.pow(10.,custom_slider3.getValueF());
   label13.setText(String.format("%11.3f )",jogStepSizes[2]));
+  textfield9.setText("");
 } //_CODE_:custom_slider3:534603:
 
 public void button34_click1(GButton source, GEvent event) { //_CODE_:button34:642288:
@@ -372,35 +354,20 @@ public void button37_click1(GButton source, GEvent event) { //_CODE_:button37:73
   }
 } //_CODE_:button37:731526:
 
-public void button38_click1(GButton source, GEvent event) { //_CODE_:button38:722903:
-  if(individualHomesEnabled){
-    button38.setText("Individual axis homing");
-    button14.setVisible(false);
-    button15.setVisible(false);
-    button16.setVisible(false);    
-  } else {
-    button38.setText("Individual Home Disable");
-    button14.setVisible(true);
-    button15.setVisible(true);
-    button16.setVisible(true);
-  }
-  individualHomesEnabled=!individualHomesEnabled;
-} //_CODE_:button38:722903:
-
 public void button39_click1(GButton source, GEvent event) { //_CODE_:button39:521786:
   System.exit(1);
 } //_CODE_:button39:521786:
 
 public void textfield7_change1(GTextField source, GEvent event) { //_CODE_:textfield7:368417:
-  logNCon("textfield7 - GTextField >> GEvent." + event + " @ " + millis(),"textfield7_change1",0);
+  //logNCon("textfield7 - GTextField >> GEvent." + event + " @ " + millis(),"textfield7_change1",0);
 } //_CODE_:textfield7:368417:
 
 public void textfield8_change1(GTextField source, GEvent event) { //_CODE_:textfield8:301063:
-  logNCon("textfield8 - GTextField >> GEvent." + event + " @ " + millis(),"textfield8_change1",0);
+  //logNCon("textfield8 - GTextField >> GEvent." + event + " @ " + millis(),"textfield8_change1",0);
 } //_CODE_:textfield8:301063:
 
 public void textfield9_change1(GTextField source, GEvent event) { //_CODE_:textfield9:718169:
-  logNCon("textfield9 - GTextField >> GEvent." + event + " @ " + millis(),"textfield9_change1",0);
+  //logNCon("textfield9 - GTextField >> GEvent." + event + " @ " + millis(),"textfield9_change1",0);
 } //_CODE_:textfield9:718169:
 
 public void button40_click1(GButton source, GEvent event) { //_CODE_:button40:921130:
@@ -477,11 +444,16 @@ public void button43_click1(GButton source, GEvent event) { //_CODE_:button43:43
   msg=textfield1.getText()+"\n";
   port.write(msg);
   logNConPort(msg,"button43_click1",0);
-  logNConPort("|"+textfield1.getText().substring(0,4)+"|","button43_click1",1);
-  logNConPort("|"+textfield1.getText().substring(4)+"|","button43_click1",2);
-  if(textfield1.getText().substring(0,4).equals("$110=")){
-    textfield3.setText(textfield1.getText().substring(4));
-    maxFeedRates[0]=Float.valueOf(textfield1.getText().substring(4));
+  if(textfield1.getText().contains("=")){
+    int lim=textfield1.getText().indexOf("=");
+    logNConPort("$assign leftside |"+textfield1.getText().substring(0,lim)+"|","button43_click1",1);
+    logNConPort("$assign rightside|"+textfield1.getText().substring(lim)+"|","button43_click1",2);
+    if(textfield1.getText().substring(0,lim).equals("$110=")){
+      textfield3.setText(textfield1.getText().substring(lim));
+      maxFeedRates[0]=Float.valueOf(textfield1.getText().substring(lim));
+    }
+  } else {
+    logNConPort("command without equals sign |"+textfield1.getText()+"|","button43_click1",3);
   }
 } //_CODE_:button43:434828:
 
@@ -550,6 +522,14 @@ public void button24_click1(GButton source, GEvent event) { //_CODE_:button24:39
   }
 } //_CODE_:button24:395857:
 
+public void button14_click1(GButton source, GEvent event) { //_CODE_:button14:953898:
+  //println("button14 - GButton >> GEvent." + event + " @ " + millis());
+  logNCon("The Big Red Switch was pushed:  ABORT","button14_click1",0);
+  msg="!";
+  port.write(msg);
+  logNConPort(msg,"button14_click1",1);
+} //_CODE_:button14:953898:
+
 
 
 // Create all the GUI controls. 
@@ -615,18 +595,6 @@ public void createGUI(){
   button13 = new GButton(this, 440, 160, 60, 30);
   button13.setText("$C");
   button13.addEventHandler(this, "button13_click1");
-  button14 = new GButton(this, 152, 597, 130, 30);
-  button14.setText("Home X");
-  button14.setLocalColorScheme(GCScheme.SCHEME_9);
-  button14.addEventHandler(this, "button14_click1");
-  button15 = new GButton(this, 317, 597, 130, 30);
-  button15.setText("Home Y");
-  button15.setLocalColorScheme(GCScheme.SCHEME_9);
-  button15.addEventHandler(this, "button15_click1");
-  button16 = new GButton(this, 489, 596, 130, 30);
-  button16.setText("Home Z");
-  button16.setLocalColorScheme(GCScheme.SCHEME_9);
-  button16.addEventHandler(this, "button16_click1");
   button17 = new GButton(this, 0, 363, 122, 112);
   button17.setText("Jog Sliders: Decades");
   button17.setLocalColorScheme(GCScheme.SCHEME_9);
@@ -717,9 +685,9 @@ public void createGUI(){
   label13.setText(" -1234.123 )");
   label13.setLocalColorScheme(GCScheme.SCHEME_9);
   label13.setOpaque(false);
-  label14 = new GLabel(this, 241, 1, 133, 30);
+  label14 = new GLabel(this, 242, 1, 133, 30);
   label14.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
-  label14.setText("last message");
+  label14.setText("???");
   label14.setLocalColorScheme(GCScheme.SCHEME_9);
   label14.setOpaque(false);
   label15 = new GLabel(this, 360, 0, 530, 20);
@@ -826,10 +794,6 @@ public void createGUI(){
   button37.setText("Set Feed");
   button37.setLocalColorScheme(GCScheme.SCHEME_9);
   button37.addEventHandler(this, "button37_click1");
-  button38 = new GButton(this, 5, 573, 145, 55);
-  button38.setText("Individual axis homing");
-  button38.setLocalColorScheme(GCScheme.SCHEME_9);
-  button38.addEventHandler(this, "button38_click1");
   button39 = new GButton(this, 752, 798, 141, 44);
   button39.setText("Exit");
   button39.setLocalColorScheme(GCScheme.SCHEME_9);
@@ -837,7 +801,7 @@ public void createGUI(){
   label17 = new GLabel(this, 520, 162, 140, 30);
   label17.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
   label17.setText("No Motion");
-  label17.setLocalColorScheme(GCScheme.RED_SCHEME);
+  label17.setLocalColorScheme(GCScheme.SCHEME_14);
   label17.setOpaque(true);
   textfield7 = new GTextField(this, 126, 420, 154, 30, G4P.SCROLLBARS_NONE);
   textfield7.setOpaque(true);
@@ -889,6 +853,10 @@ public void createGUI(){
   button24.setText("Set WCO");
   button24.setLocalColorScheme(GCScheme.SCHEME_9);
   button24.addEventHandler(this, "button24_click1");
+  button14 = new GButton(this, 681, 459, 210, 160);
+  button14.setText("BRS");
+  button14.setLocalColorScheme(GCScheme.RED_SCHEME);
+  button14.addEventHandler(this, "button14_click1");
 }
 
 // Variable declarations 
@@ -907,9 +875,6 @@ GButton button10;
 GButton button11; 
 GButton button12; 
 GButton button13; 
-GButton button14; 
-GButton button15; 
-GButton button16; 
 GButton button17; 
 GButton button18; 
 GButton button19; 
@@ -958,7 +923,6 @@ GButton button34;
 GButton button35; 
 GButton button36; 
 GButton button37; 
-GButton button38; 
 GButton button39; 
 GLabel label17; 
 GTextField textfield7; 
@@ -975,3 +939,4 @@ GTextField textfield10;
 GTextField textfield11; 
 GTextField textfield12; 
 GButton button24; 
+GButton button14; 

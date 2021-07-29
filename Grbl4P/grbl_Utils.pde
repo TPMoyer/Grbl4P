@@ -168,19 +168,22 @@ void grblParams2Console(){
 void initGUI(){
   
   createGUI();
-    
+  for(int ii=0;ii<40;ii++){
+    labelPreTexts  [ii]="";
+    labelPriorTexts[ii]="";
+  }
+
   /* default font for the sketch set to Monospaced 20 */
   Font font0=new Font("Monospaced", Font.PLAIN, 16);
   Font font1=new Font("Monospaced", Font.PLAIN, 30);
   Font font2=new Font("Monospaced", Font.PLAIN, 60);
    
-  button14.setVisible(false);
-  button15.setVisible(false);
-  button16.setVisible(false);
   label17.setVisible(false);
 
   button19.setFont(font2);
   button19.setTextBold();
+  button14.setFont(font2);
+  button14.setTextBold();
   button39.setFont(font1);
   //button39.setTextBold();
 
@@ -189,7 +192,6 @@ void initGUI(){
   button35.setFont(font0);
   button36.setFont(font0);
   button37.setFont(font0);
-  button38.setFont(font0);
   button45.setFont(font0);
   button46.setFont(font0);
 
@@ -211,6 +213,8 @@ void initGUI(){
   label7.setTextBold();
   label8.setTextBold();
   label9.setTextBold();
+
+  label17.setTextBold();
 
   label1 .setText(String.format("W%dXYZ:",currentWCO));
   label5 .setText(String.format("(%11.3f," ,jogStepSizes[0]));

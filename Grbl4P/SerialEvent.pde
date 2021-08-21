@@ -1,3 +1,266 @@
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+void serialEvent(Serial p){
+  String s = p.readStringUntil('\n').trim();
+  /* Initial peek at the stream of data which enters this method 
+   * for(int ii=0;ii<s.length();ii++)logNCon(String.format("%2d %c %3d",ii,s.charAt(ii),(int)s.charAt(ii)),"serialEvent",0); 
+   * The above show-every-character for() has become legacy code
+   */
+  //if(s.startsWith("Grbl"))logNCon("see Grbl initialization with grblIndex="+grblIndex,"serialEvent",0);
+  if(  (-1==grblIndex)
+    &&(s.startsWith("Grbl"))
+   ){
+   grblIndex=portMatcher(p);  
+   log.debug("grblIndex set to "+grblIndex+" which is "+portNames[grblIndex]);
+  }
+  if(  (-1==joyIndex)
+     &&(s.startsWith("J0Y"))
+    ){
+    joyIndex=portMatcher(p);
+    label4 .setVisible(true);
+    label19.setVisible(true);
+    log.debug("J0Y setting joyIndex="+joyIndex+" prompted by "+s+" and made label4 visible");
+  } else {
+    //log.debug("Serial"+p+" s="+s);
+    if(s.startsWith("J0Y")){
+      joyStickSerialEvent(s);
+    } else {
+      grblSerialEvent(s,p);
+    }
+  }
+}
+
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+void joyStickSerialEvent(String s){
+  //log.debug("joyStickSerialEvent s="+s);
+  float mid,full,mag,dir; /* mid==midpoint of the axis responses, full==Full range of axis response, mag==magnitude scaled 0 to 1, dir==direction pos or negative 1 */
+  int[] gots=parseJoy(s);
+  if(5==gots.length){
+    /* 0 X */
+    /* 1 Y */
+    /* 2 R  Rotation is currently ignored*/
+    /* 3 T  Throttle */
+    /* 4 S */
+    full=255;
+    float min=.01;
+    joyThrottle=min+((1.0-min)*(full-gots[3]*1.0)/full); /* flip it around so full forward is 1.0, full back is 0.01 ie  1 percent of full speed  */
+    labelPreTexts [19]=String.format("Joy Throttle %3.0f%%",100.*joyThrottle);
+    
+    mid=511.5;
+    mag=Math.abs((gots[0]-mid)/mid);
+    dir=(gots[0]>mid)?1.0:-1.0;
+    if(mag >= joyStickDeadZone){
+      joyX=dir*(mag-joyStickDeadZone)/(1.0-joyStickDeadZone);  /* scale it from 0 at the edge of the dead zone, to 1 at full */
+    } else {
+      joyX=0.0;
+    }
+    mag=Math.abs((gots[1]-mid)/mid);
+    dir=(gots[1]>mid)?-1.0:1.0;
+    //log.debug(String.format("mid=%6.3f gots[1]=%4d mag=%6.3f %3.0f %s",mid,gots[1],mag,dir,(mag >= joyStickDeadZone)?"true":"false"));
+    if(mag >= joyStickDeadZone){
+      joyY=dir*(mag-joyStickDeadZone)/(1.0-joyStickDeadZone);  /* scale it from 0 at the edge of the dead zone, to 1 at full */
+    } else {
+      joyY=0.0;
+    }
+    //log.debug(String.format("joyX=%6.3f joyY=%6.3f throttle=%5.2f percent",joyX,joyY,joyThrottle*100.));
+    
+    joyHat = gots[4]>>12;
+    
+    /* boolean feedHold0;                /*  Trigger                            bit0    button 0  */
+    /* //boolean resetSlashAbort;        /*  Thumb Switch                       bit1    button 1    not connected, I hit it too much unintentionally */                                              
+    /* boolean auxPowerOff;              /*  Near Button Left of Hat            bit2    button 2  */
+    /* boolean auxPowerOn;               /*  Near Button Right of Hat           bit3    button 3  */
+    /* boolean feedHold1;                /*  Far Button Left of Hat             bit4    button 4  */
+    /* boolean cycleStartSlashResume;    /*  Far Button Right of Hat            bit5    button 5  */
+    /* boolean motorsDisable;            /*  Lower Far Button on Base           bit6    button 6  */
+    /* boolean motorsEnable;             /*  Upper Far Button on Base           bit7    button 7  */
+    /* boolean spindleOff;               /*  Lower Mid-Distance Button on Base  bit8    button 8  */
+    /* boolean spindleOn;                /*  Upper Mid-Distance Button on Base  bit9    button 9  */
+    /* boolean coolantSlashLaserDisable; /*  Lower Near Button on Base          bit10   button 10 */
+    /* boolean coolantSlashLaserEnable;  /*  Upper Near Button on Base          bit11   Button 11 */
+    
+    int seed=2048;
+    for(int ii=11;ii<=0;ii--){
+      if(0!=(gots[4]&seed))joyStickButtons[11]=true;
+      seed/=2;
+    }     
+    
+    //seed=2048;
+    //int clY=(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int clN=(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int sY =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int sN =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int mY =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int mN =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int csr=(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int fh0 =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int apY=(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int apN=(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int ra =(0==(gots[4]&seed))?0:1;
+    //seed/=2;
+    //int fh1 =(0==(gots[4]&seed))?0:1;    
+    //String bin="0000000000000000"+Integer.toBinaryString(gots[4]);
+    //log.debug(
+    // String.format(
+    //   "%4s hat=%d switches=%-12s %s clY=%d clN=%d sY=%d sN=%d mY=%d mN=%d csr=%d fh0=%d apY=%d apN=%d ra=%d fh1=%d",
+    //   s.substring(1+s.lastIndexOf(",")),
+    //   hat,
+    //   bin.substring(bin.length()-16).substring(4),
+    //   bin.substring(bin.length()-16),
+    //   clY,clN,sY,sN,mY,mN,csr,fh0,apY,apN,ra,fh1        
+    // )
+    //);
+  } else {  
+    log.debug("got a J0Y, with gots.length not 5 s="+s);
+  }
+}
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+void grblSerialEvent(String s,Serial p){
+  //log.debug("GrblSerialEvent s="+s);
+  if(0<s.length()){  
+    //logNCon("s="+s,"serialEvent",1);
+    //log.debug("serialEvent |s|=|"+s+"|");
+    //if(-1!=s.indexOf('>'))s=s.substring(0,s.indexOf('>')); 
+    if(!streaming){
+      if(s.startsWith("<Idle" )){
+        idleCount++;
+      } else {
+        idleCount =0;
+      }  
+      if(s.startsWith("<Alarm")){
+        alarmCount++; 
+      } else {
+        alarmCount=0;
+      }  
+    }  
+    //if(  (!streaming)
+    //   &&(  verboseOutput
+    //      ||('<'!=s.charAt(0))
+    //     ) 
+    //   &&('$'!=s.charAt(0)) /* do not push thru the grblParams,    they are pretty-printed post collection of the full set */  
+    //   &&('#'!=s.charAt(0)) /* do not push thru the hashtagParams, they are pretty-printed post collection of the full set */
+    //   &&(!s.trim().equals("ok"))
+    //  ){ 
+    //  timeNSay(String.format("160 see |%s|",s.trim()));
+    //}
+    /* check for ok or error to have the numbers fed into the streaming handler be correct */
+    if(s.equals("ok") ){
+      Long aTime= System.nanoTime();;
+      if(streaming){
+        numStreamingOKs+=1;
+      } else   
+      if(amJoyStickJogging){
+        //log.debug(String.format("jog ok %6.3f %6.3f",((aTime - time2) / 1.0e+6),((aTime - time0) / 1.0e+6)));
+        numJoyStickJoggingOKs++;
+      }
+      else {
+        //log.debug(String.format("    ok %6.3f %6.3f",((aTime - time2) / 1.0e+6),((aTime - time0) / 1.0e+6)));
+        /* remove any error or Alarm text */
+        msg="";
+        labelPreTexts[22]=msg;
+        if(true==seeHashtagParams){
+          log.debug("in seehashtagParams");
+          hashtagParams2Console();
+          seeHashtagParams=false;
+        }
+        if(true==seeGrblParams){
+          log.debug("in seeGrblParams");
+          grblParams2Console();
+          seeGrblParams=false;
+        }
+      }
+    } else
+    if(  s.startsWith("error")
+       ||s.startsWith("<Alarm")
+       ||s.startsWith("ALARM")
+    ){
+      if(streaming) handleStreamingError(s);
+      else handleAlarmNError(s); 
+    }
+    
+    if(streaming && bufferedReaderSet){
+      //logNCon("streaming "+s,"serialEvent",2);
+      handleFileBufferFillNPush();
+    }
+    
+    if(s.startsWith("<Idle")){ /* currently no action taken upon recieving this */
+      if(5>idleCount){
+        log.debug("see fresh Idle s=|"+s+"|");
+      } else {  
+        if(doNotAllowIdleToGoStale){
+          log.debug("see unfresh Idle s=|"+s+"|");
+        } else {
+          //log.debug("see stale Idle |s|=|"+s+"|");
+        }  
+      }
+    } 
+    if(  (  (s.startsWith("<Idle"))
+          &&(  (5>idleCount)
+             ||doNotAllowIdleToGoStale
+            ) 
+         )
+       ||(  (!s.startsWith("<Idle"))
+          &&(s.charAt(0)=='<')
+         ) 
+      ){
+      handleStatusReport(s); /* the response to the 5hz status report query needed extensive handling */
+    } else
+    if(s.startsWith("[GC")){  /* currently no action taken upon recieving this */
+      logNCon("got [GC.   reflects "+s,"serialEvent",3);
+    } else
+    if(s.startsWith("[HLP")){ /* currently no action taken upon recieving this */
+      logNCon("got [HLP.   reflects "+s,"serialEvent",4);
+    } else
+    if(s.startsWith("[VER")){ /* currently no action taken upon recieving this */
+      logNCon("got [VER.   reflects "+s,"serialEvent",5);
+    } else
+    if(s.startsWith("[OPT")){ /* currently no action taken upon recieving this */
+      logNCon("got [VER.   reflects "+s,"serialEvent",6);
+    } else
+    if(s.startsWith("[MSG")){ /* currently no action taken upon recieving this */
+      handleMsg(s);
+    } else
+    if(  s.charAt(0)=='['){ /* the assembly of these into the (float[11][3]+lastProbeGood) needed extensive handling  */
+      handleNumberParams(s);
+    } else
+    if(s.startsWith("Grbl")){
+      grblIndex=portMatcher(p);
+      if(-1==grblIndex){
+        msg="no match to a grbl Serial.list member.   This is fatal";
+        logNCon(msg,"SerialEvent",3);
+        System.exit(2);
+      }  
+      handleGrblSaysHello(s);
+    } else    
+    if(s.startsWith("$")){ /* collect these grbl parameters for use in the GUI  */
+      handleGrblSettingCollection(s);
+    } 
+    /* this is not part of the above if{}else if{} stack.  This is an independent if */
+    if(  (s.startsWith("<"))
+       &&(true==priorStatusHadPn)
+       &&(!s.contains("Pn:"))
+      ){
+      handleCleanupOfNoMorePn(s);
+    }
+  }
+  //log.debug("@endOf serialEvent()");
+}
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 /**************************************************************************************************************/
@@ -18,8 +281,11 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
     if(responseData[0].equals("MPos")){
       //log.debug("MPos");
       String[] pos = responseData[1].split(",",3);
+      /* the reported mPos numbers are out of date, when joystick jogging is happening */
+      float[] priorMPos= new float[3];
       for(int jj=0;jj<3;jj++){
         try {
+          priorMPos[jj]=mPos[jj];
           //log.debug("pos["+jj+"]="+pos[jj]);
           mPos[jj]=Float.valueOf(pos[jj]);
         } catch (NumberFormatException nfe) {
@@ -40,6 +306,22 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
       //log.debug("9 msg="+msg);
       labelPreTexts[9]=msg;
       //label9.setText(msg);
+
+      /* the Work Position (WPos) is shown in the GUI as the bold, larger, upper row of location coordinates */
+      //msg=String.format("(%9.3f,",mPos[0]-wco[0]);
+      msg=String.format("(%9.3f,",mPos[0]-gParams[activeWCO][0]);
+      //log.debug("2 msg="+msg);
+      labelPreTexts[2]=msg;
+      //label2 .setText(msg);
+      //msg=String.format( "%9.3f,",mPos[1]-wco[1]);
+      msg=String.format( "%9.3f,",mPos[1]-gParams[activeWCO][1]);
+      //log.debug("10 msg="+msg);
+      labelPreTexts[10]=msg;
+      //label10.setText(msg);
+      //msg=String.format( "%9.3f)",mPos[2]-wco[2]);
+      msg=String.format( "%9.3f)",mPos[2]-gParams[activeWCO][2]);
+      //log.debug("11 msg="+msg);
+      labelPreTexts[11]=msg;
     } else 
     if(responseData[0].equals("FS")){
       //log.debug("FS");
@@ -109,21 +391,21 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
           System.exit(5);
         }
       }
-      /* the Work Position (WPos) is shown in the GUI as the bold, larger, upper row of location coordinates */
-      //msg=String.format("(%9.3f,",mPos[0]-wco[0]);
-      msg=String.format("(%9.3f,",wco[0]);
-      //log.debug("2 msg="+msg);
-      labelPreTexts[2]=msg;
-      //label2 .setText(msg);
-      //msg=String.format( "%9.3f,",mPos[1]-wco[1]);
-      msg=String.format( "%9.3f,",wco[1]);
-      //log.debug("10 msg="+msg);
-      labelPreTexts[10]=msg;
-      //label10.setText(msg);
-      //msg=String.format( "%9.3f)",mPos[2]-wco[2]);
-      msg=String.format( "%9.3f)",wco[2]);
-      //log.debug("11 msg="+msg);
-      labelPreTexts[11]=msg;
+      // /* the Work Position (WPos) is shown in the GUI as the bold, larger, upper row of location coordinates */
+      // //msg=String.format("(%9.3f,",mPos[0]-wco[0]);
+      // msg=String.format("(%9.3f,",wco[0]);
+      // //log.debug("2 msg="+msg);
+      // labelPreTexts[2]=msg;
+      // //label2 .setText(msg);
+      // //msg=String.format( "%9.3f,",mPos[1]-wco[1]);
+      // msg=String.format( "%9.3f,",wco[1]);
+      // //log.debug("10 msg="+msg);
+      // labelPreTexts[10]=msg;
+      // //label10.setText(msg);
+      // //msg=String.format( "%9.3f)",mPos[2]-wco[2]);
+      // msg=String.format( "%9.3f)",wco[2]);
+      // //log.debug("11 msg="+msg);
+      // labelPreTexts[11]=msg;
       //label11.setText(msg);
     } else
     if(responseData[0].equals("Bf")){
@@ -174,146 +456,12 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
   activeState=chunks[0].split(",",2)[0];
   if(!activeState.equals(labelPreTexts[14])){
     msg="activeState="+activeState;
-    log.debug("msg="+msg);
+    //log.debug("msg="+msg);
     labelPreTexts[14]=activeState;
-    logNCon("setting |activeState|=|"+activeState+"|","handleStatusReport",12);
+    //logNCon("setting |activeState|=|"+activeState+"|","handleStatusReport",12);
   }
   msg="end of handleStatusReport()";
   //logNCon(msg,"handleStatusReport",11);
-}
-/**************************************************************************************************************/
-/**************************************************************************************************************/
-/**************************************************************************************************************/
-void serialEvent(Serial p){
-  
-  String s = p.readStringUntil('\n').trim();
-  /* Initial peek at the stream of data which enters this method 
-   * for(int ii=0;ii<s.length();ii++)logNCon(String.format("%2d %c %3d",ii,s.charAt(ii),(int)s.charAt(ii)),"serialEvent",0); 
-   * The above show-every-character for() has become legacy code
-   */
-  if(0<s.length()){  
-    //logNCon("s="+s,"serialEvent",1);
-    //log.debug("serialEvent |s|=|"+s+"|");
-    //if(-1!=s.indexOf('>'))s=s.substring(0,s.indexOf('>')); 
-    if(!streaming){
-//      if(  (5>idleCount)
-//         &&(5>alarmCount)
-//        ){ 
-//        log.debug(String.format("see |%s|",s.trim()));
-//      }
-      if(s.startsWith("<Idle" )){
-        idleCount++;
-      } else {
-        idleCount =0;
-      }  
-      if(s.startsWith("<Alarm")){
-        alarmCount++; 
-      } else {
-        alarmCount=0;
-      }  
-    }  
-    if(  (!streaming)
-       &&(  verboseOutput
-          ||('<'!=s.charAt(0))
-         ) 
-       &&('$'!=s.charAt(0)) /* do not push thru the grblParams,    they are pretty-printed post collection of the full set */  
-       &&('#'!=s.charAt(0)) /* do not push thru the hashtagParams, they are pretty-printed post collection of the full set */
-       
-      ){ 
-      timeNSay(String.format("221 see |%s|",s.trim()));
-       //timeNSay(String.format("serialEvent got pipeBound |%s|",s.trim()));
-      //timeNSay(String.format("serialEvent with "+(priorStatusHadPn?"true ":"false")+"==priorStatusHadPn  got pipeBound |%s|",s.trim()));
-    }
-    /* check for ok or error to have the numbers fed into the streaming handler be correct */
-    if(s.equals("ok") ){
-      if(streaming)numOKs+=1;
-      else {
-        //log.debug("pre label22.setText");
-        msg="";
-        labelPreTexts[22]=msg;
-        //label22.setText(""); /* remove any error or Alarm text */    /* label try 0 */
-        //log.debug("post label22.setText");
-        if(true==seeHashtagParams){
-          log.debug("in seehashtagParams");
-          hashtagParams2Console();
-          seeHashtagParams=false;
-        }
-        if(true==seeGrblParams){
-          log.debug("in seeGrblParams");
-          grblParams2Console();
-          seeGrblParams=false;
-        }
-      }
-    } else
-    if(  s.startsWith("error")
-       ||s.startsWith("<Alarm")
-       ||s.startsWith("ALARM")
-    ){
-      if(streaming) handleStreamingError(s);
-      else handleAlarmNError(s); 
-    }
-    
-    if(streaming && bufferedReaderSet){
-      //logNCon("streaming "+s,"serialEvent",2);
-      handleFileBufferFillNPush();
-    }
-    
-    if(s.startsWith("<Idle")){ /* currently no action taken upon recieving this */
-      if(5>idleCount){
-        log.debug("see fresh Idle |s|=|"+s+"|");
-      } else {  
-        if(doNotAllowIdleToGoStale){
-          log.debug("see unfresh Idle |s|=|"+s+"|");
-        } else {
-          //log.debug("see stale Idle |s|=|"+s+"|");
-        }  
-      }
-    } 
-    if(  (  (s.startsWith("<Idle"))
-          &&(  (5>idleCount)
-             ||doNotAllowIdleToGoStale
-            ) 
-         )
-       ||(  (!s.startsWith("<Idle"))
-          &&(s.charAt(0)=='<')
-         ) 
-      ){
-      handleStatusReport(s); /* the response to the 5hz status report query needed extensive handling */
-    } else
-    if(s.startsWith("[GC")){  /* currently no action taken upon recieving this */
-      logNCon("got [GC.   reflects "+s,"serialEvent",3);
-    } else
-    if(s.startsWith("[HLP")){ /* currently no action taken upon recieving this */
-      logNCon("got [HLP.   reflects "+s,"serialEvent",4);
-    } else
-    if(s.startsWith("[VER")){ /* currently no action taken upon recieving this */
-      logNCon("got [VER.   reflects "+s,"serialEvent",5);
-    } else
-    if(s.startsWith("[OPT")){ /* currently no action taken upon recieving this */
-      logNCon("got [VER.   reflects "+s,"serialEvent",6);
-    } else
-    if(s.startsWith("[MSG")){ /* currently no action taken upon recieving this */
-      handleMsg(s);
-    } else
-    if(  s.charAt(0)=='['){ /* the assembly of these into the (float[11][3]+lastProbeGood) needed extensive handling  */
-      handleNumberParams(s);
-    } else
-    if(s.startsWith("Grbl")){
-      seeGrbl=true;
-      handleGrblSaysHello(s);
-    } else    
-    if(s.startsWith("$")){ /* collect these grbl parameters for use in the GUI  */
-      handleGrblSettingCollection(s);
-    } 
-    /* this is not part of the above if{}else if{} stack.  This is an independent if */
-    if(  (s.startsWith("<"))
-       &&(true==priorStatusHadPn)
-       &&(!s.contains("Pn:"))
-      ){
-      handleCleanupOfNoMorePn(s);
-    }
-  }
-  //log.debug("@endOf serialEvent()");
 } 
 /**************************************************************************************************************/
 /**************************************************************************************************************/
@@ -337,16 +485,16 @@ void handleAlarmNError(String s){
     activeState="Alarm";
     alarmIsSticky=true;
     String[] chunks0=s.split(":");
-    logNCon("number of chunks0 = "+chunks0.length,"handleAlarmNError",12);
-    for(int ii=0;ii<chunks0.length;ii++){
-      logNCon("\n chunks0["+ii+"]="+chunks0[ii],"handleAlarmNError",13);
-      //for(int jj=0;jj<chunks0[ii].length();jj++){
-      //  logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks0[ii].charAt(jj),(int)chunks0[ii].charAt(jj)),"handleAlarmNError",17);
-      //}
-    }
+    //logNCon("number of chunks0 = "+chunks0.length,"handleAlarmNError",12);
+    //for(int ii=0;ii<chunks0.length;ii++){
+    //  logNCon("\n chunks0["+ii+"]="+chunks0[ii],"handleAlarmNError",13);
+    //  //for(int jj=0;jj<chunks0[ii].length();jj++){
+    //  //  logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks0[ii].charAt(jj),(int)chunks0[ii].charAt(jj)),"handleAlarmNError",17);
+    //  //}
+    //}
     try {
       labelPreTexts[22]=alarms[Integer.parseInt(chunks0[1])-1];
-      log.debug("setting label22 2b "+labelPreTexts[22]+" as alarms["+(Integer.parseInt(chunks0[1])-1)+"]");
+      log.debug("setting label22 2b alarms["+(Integer.parseInt(chunks0[1])-1)+"]                                   "+labelPreTexts[22]);
     } catch (NumberFormatException nfe) {
       logNCon("NumberFormatException: " + nfe.getMessage(),"handleAlarmNError",19);
       System.err.println("NumberFormatException: " + nfe.getMessage());
@@ -358,13 +506,13 @@ void handleAlarmNError(String s){
     logNCon("have a full fledged \"error\"","handleAlarmNError",11);
     activeState="Alarm";
     String[] chunks0=s.split(":");
-    logNCon("number of chunks0 = "+chunks0.length,"handleAlarmNError",14);
-    for(int ii=0;ii<chunks0.length;ii++){
-      logNCon("\n chunks0["+ii+"]="+chunks0[ii],"handleAlarmNError",15);
-      for(int jj=0;jj<chunks0[ii].length();jj++){
-        logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks0[ii].charAt(jj),(int)chunks0[ii].charAt(jj)),"handleAlarmNError",16);
-      }
-    }
+    //logNCon("number of chunks0 = "+chunks0.length,"handleAlarmNError",14);
+    //for(int ii=0;ii<chunks0.length;ii++){
+    //  logNCon("\n chunks0["+ii+"]="+chunks0[ii],"handleAlarmNError",15);
+    //  for(int jj=0;jj<chunks0[ii].length();jj++){
+    //    logNCon(String.format("%2d %2d %c %3d",ii,jj,chunks0[ii].charAt(jj),(int)chunks0[ii].charAt(jj)),"handleAlarmNError",16);
+    //  }
+    //}
     try {
       labelPreTexts[22]=errors[Integer.parseInt(chunks0[1])-1];
       log.debug("setting label22 2b "+labelPreTexts[22]+" as errors["+(Integer.parseInt(chunks0[1])-1));
@@ -388,29 +536,13 @@ void handleAlarmNError(String s){
            System.err.println("NumberFormatException: " + nfe.getMessage());
         }
       }
-
-      
-      //label2 .setText(String.format("(%9.3f,",mPos[0]-wco[0]));
-      //label10.setText(String.format("%9.3f," ,mPos[1]-wco[1]));
-      //label11.setText(String.format("%9.3f)" ,mPos[2]-wco[2]));
-
       /* the Work Position   WPos bold, larger upper row of locations */
-      //label2 .setText(String.format("(%9.3f,",wco[0]));
-      //label10.setText(String.format("%9.3f," ,wco[1]));
-      //label11.setText(String.format("%9.3f)" ,wco[2]));
-
-      /* the MPos plain, smaller lower row of locations */
-      //label7.setText(String.format("(%9.3f,",mPos[0]));
-      //label8.setText(String.format("%9.3f," ,mPos[1]));
-      //label9.setText(String.format("%9.3f)" ,mPos[2]));
-
-      /* the Work Position   WPos bold, larger upper row of locations */
-      msg=String.format("(%9.3f,",wco[0]);
+      msg=String.format("(%9.3f,",mPos[0]-gParams[activeWCO][0]);
       labelPreTexts[2]=msg;
-      msg=String.format("%9.3f," ,wco[1]);
+      msg=String.format( "%9.3f,",mPos[1]-gParams[activeWCO][1]);
       labelPreTexts[10]=msg;
-      msg=String.format("%9.3f)" ,wco[2]);
-      labelPreTexts[11]=msg;
+      msg=String.format( "%9.3f)",mPos[2]-gParams[activeWCO][2]);
+      labelPreTexts[11]=msg;          
 
       /* the MPos plain, smaller lower row of locations */
       msg=String.format("(%9.3f,",mPos[0]);
@@ -482,7 +614,7 @@ void handleAlarmNError(String s){
   if(!alarmIsSticky){
   activeState=s.startsWith("Alarm")?"Alarm":"error";
   }
-  if(s.startsWith("Alarm"))port.write("?");
+  if(s.startsWith("Alarm"))ports[grblIndex].write("?");
   //log.debug("@endOf handleAlarmNError");
 }
 /**************************************************************************************************************/
@@ -490,17 +622,17 @@ void handleAlarmNError(String s){
 /**************************************************************************************************************/
 /* this method reads the file and pushes the content to the arduino GRBL */
 void handleFileBufferFillNPush(){
-  //timeNSay("handleFileBufferFillNPush() numLinesSent="+numLinesSent+" numOks="+numOKs+" numErrors="+numErrors);
+  //timeNSay("handleFileBufferFillNPush() numLinesSent="+numLinesSent+" numStreamingOKs="+numStreamingOKs+" numErrors="+numErrors);
   //timeNSay("h");
   String line="";
   String regex = "[0-9, /, /., /-]+";  /* used to look for lines which have only 3 numbers (as output by Rhino) 1.000, 3.223,-1.3   */
   DecimalFormat df=new DecimalFormat("#.#");
   int numEPROMs=ePROM_reads_or_writes.length;
   if(  (0< numLinesSent)
-     &&(numLinesSent==(numOKs+numErrors))
+     &&(numLinesSent==(numStreamingOKs+numErrors))
   ){
     streaming=false;
-    log.debug("done       streaming  numLinesSent="+numLinesSent+" vs (numOKs+numErrors)="+numOKs+"+"+numErrors+"="+(numOKs+numErrors));
+    log.debug("done       streaming  numLinesSent="+numLinesSent+" vs (numStreamingOKs+numErrors)="+numStreamingOKs+"+"+numErrors+"="+(numStreamingOKs+numErrors));
     msg="streaming completed on "+numLinesSent+" gCode rows with "+numErrors+" errors";
     logNCon(msg,"handleFileBufferFillNPush",0);
     log.debug("pre 238 label22 mod");
@@ -514,11 +646,11 @@ void handleFileBufferFillNPush(){
       logNCon("post setting label22 colorscheme green","handleFileBufferFillNPush",2);
     }  
     numLinesSent=0;
-    numOKs=0;
+    numStreamingOKs=0;
     numErrors=0;
     log.debug("post label22 mod");
   } else { 
-    log.debug("Seem to be streaming  numLinesSent="+numLinesSent+" vs (numOKs+numErrors)="+numOKs+"+"+numErrors+"="+(numOKs+numErrors));
+    log.debug("Seem to be streaming  numLinesSent="+numLinesSent+" vs (numStreamingOKs+numErrors)="+numStreamingOKs+"+"+numErrors+"="+(numStreamingOKs+numErrors));
     try {
       redBufferUsed=0;
       /* read line by line until the number of bytes is greater than 128
@@ -580,8 +712,8 @@ void handleFileBufferFillNPush(){
        * The knowledge of "been processed" is gleened from grbl sending either an "ok" or and error:N
        * for each row pulled in from the buffer and parsed into it's look-ahead scheme
        */
-      while(numRowsConfirmedProcessed<(numOKs+numErrors)){
-        //logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d %3d %2d",numRowsConfirmedProcessed,(numOKs+numErrors),grblBufferUsed,sentLineLengths.size()),"handleFileBufferFillNPush",5);
+      while(numRowsConfirmedProcessed<(numStreamingOKs+numErrors)){
+        //logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d %3d %2d",numRowsConfirmedProcessed,(numStreamingOKs+numErrors),grblBufferUsed,sentLineLengths.size()),"handleFileBufferFillNPush",5);
         grblBufferUsed-=sentLineLengths.get(0);
         sentLineLengths.remove(0);
         numRowsConfirmedProcessed+=1;
@@ -597,7 +729,7 @@ void handleFileBufferFillNPush(){
         int nextUpLength=nextUp.length()+1;
         log.debug("redBuffer.size()="+redBuffer.size()+" nextUp="+nextUp);
         while ((grblBufferUsed+nextUpLength)<=bufferSize){
-          port.write(nextUp+lf); 
+          ports[grblIndex].write(nextUp+lf); 
           grblBufferUsed+=nextUpLength;
           sentLineLengths.add(nextUpLength);
           numLinesSent+=1;
@@ -631,7 +763,7 @@ void handleFileBufferFillNPush(){
           }
         }
       }
-      //timeNSay("numLinesSent="+numLinesSent+" grblBufferUsed="+grblBufferUsed+" numOks="+numOKs+" numErrors="+numErrors);
+      //timeNSay("numLinesSent="+numLinesSent+" grblBufferUsed="+grblBufferUsed+" numStreamingOKs="+numStreamingOKs+" numErrors="+numErrors);
     } catch (IOException e) {
        System.err.format("IOException: %s%n", e);
     }
@@ -737,23 +869,23 @@ void handleNumberParams(String s){
 
 void handleGrblSaysHello(String s){
   /* initial hellow from grbl.  send the $# command to get the eprom parameters */
-  frameTitle="GRBL Gui connected     port="+portName+"   "+s.substring(0,s.indexOf("[")-2);
+  frameTitle="GRBL Gui connected     port="+portNames[grblIndex]+"   "+s.substring(0,s.indexOf("[")-2);
   timeNSay("grbl said hello");
   button22.setText((verboseOutput ?"halt ":"provide ")+"verbose output");
   
   /* prompt for the stored eprom variables */
   portMsg="$#\n";
-  port.write(portMsg);
+  ports[grblIndex].write(portMsg);
   //logNCon("port.wrote("+portMsg+")","handleGrblSaysHello",0);
 
   /* prompt for the stored settings */
   portMsg="$$\n";
-  port.write(portMsg);
+  ports[grblIndex].write(portMsg);
   //logNCon("port.wrote("+portMsg+")","handleGrblSaysHello",1);
   
   ///* if uncommentd, this will prompt the help response. see https://github.com/gnea/grbl/wiki/Grbl-v1.1-Commands */
   //portMsg="$\n";
-  //port.write(portMsg);
+  //ports[grblIndex].write(portMsg);
   //logNCon("port.wrote("+portMsg+")","handleGrblSaysHello",2);
 }
 
@@ -844,7 +976,26 @@ void handleGrblSettingCollection(String s){
   }
   seeGrblParams=true;
 }
-
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+/**************************************************************************************************************/
+int portMatcher(Serial p){
+  String target=String.format("%s",p);
+  //log.debug("initializing which port is grbl. target="+target);
+  int match=-1;
+  for(int ii=0;ii<portNames.length;ii++){
+    if(false==portsBusy[ii]){
+      //log.debug(String.format("%2d %-33s vs %-33s",ii,serialThisNames[ii],target));
+      if(serialThisNames[ii].equals(target)){
+        //log.debug("match");
+        match=ii;
+      }
+    } //else {
+    //  log.debug("no match");
+    //}  
+  }
+  return(match);
+}      
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 /**************************************************************************************************************/

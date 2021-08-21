@@ -1,3 +1,4 @@
+/*                           0   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  */ 
 int [] grblSettingIndices = {0  ,1  ,2  ,3  ,4  ,5  ,6  ,10 ,11 ,12 ,13 ,20 ,21 ,22 ,23 ,24 ,25 ,26 ,27 ,30 ,31 ,32 ,100,101,102,110,111,112,120,121,122,130,131,132};
 String [] grblSettingTexts = {
 "Step pulse, microseconds",
@@ -87,3 +88,4 @@ String [] errors = {
 "The G43.1 dynamic tool length offset command cannot apply an offset to an axis other than its configured axis. The Grbl default axis is the Z-axis.",
 "Tool number greater than max supported value."  
 }; 
+/* 

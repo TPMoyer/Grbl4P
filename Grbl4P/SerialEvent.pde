@@ -15,124 +15,33 @@ void serialEvent(Serial p){
    grblIndex=portMatcher(p);  
    log.debug("grblIndex set to "+grblIndex+" which is "+portNames[grblIndex]);
   }
-  if(  (-1==joyIndex)
+  if(  (-1==joy0.getPortIndex())
      &&(s.startsWith("J0Y"))
     ){
-    joyIndex=portMatcher(p);
+    joy0.setPortIndex(portMatcher(p));
     label4 .setVisible(true);
     label19.setVisible(true);
-    log.debug("J0Y setting joyIndex="+joyIndex+" prompted by "+s+" and made label4 visible");
+    button16.setVisible(true);
+    button24.setVisible(true);
+    //labelPreTexts[21]="X state="+joy0.getXResponseState()+" preState="+joy0.getPriorXResponseState(); 
+    //labelPreTexts[29]="Y state="+joy0.getYResponseState()+" preState="+joy0.getPriorYResponseState();
+    //labelPreTexts[31]="Sticky="+(joy0.getResponseStatesAreSticky()?"true ":"false")+" prior="+(joy0.getPriorResponseStatesWereSticky()?"true ":"false");
+    //log.debug("port initialization \n"+labelPreTexts[21]+"\n"+labelPreTexts[29]+"\n"+labelPreTexts[31]);
+    log.debug("J0Y setting joy0.portIndex="+joy0.getPortIndex()+" prompted by "+s+" and made label4 visible");
   } else {
     //log.debug("Serial"+p+" s="+s);
     if(s.startsWith("J0Y")){
-      joyStickSerialEvent(s);
+      joy0.joyStickSerialEvent(s);
     } else {
       grblSerialEvent(s,p);
     }
-  }
-}
-
-/**************************************************************************************************************/
-/**************************************************************************************************************/
-/**************************************************************************************************************/
-void joyStickSerialEvent(String s){
-  //log.debug("joyStickSerialEvent s="+s);
-  float mid,full,mag,dir; /* mid==midpoint of the axis responses, full==Full range of axis response, mag==magnitude scaled 0 to 1, dir==direction pos or negative 1 */
-  int[] gots=parseJoy(s);
-  if(5==gots.length){
-    /* 0 X */
-    /* 1 Y */
-    /* 2 R  Rotation is currently ignored*/
-    /* 3 T  Throttle */
-    /* 4 S */
-    full=255;
-    float min=.01;
-    joyThrottle=min+((1.0-min)*(full-gots[3]*1.0)/full); /* flip it around so full forward is 1.0, full back is 0.01 ie  1 percent of full speed  */
-    labelPreTexts [19]=String.format("Joy Throttle %3.0f%%",100.*joyThrottle);
-    
-    mid=511.5;
-    mag=Math.abs((gots[0]-mid)/mid);
-    dir=(gots[0]>mid)?1.0:-1.0;
-    if(mag >= joyStickDeadZone){
-      joyX=dir*(mag-joyStickDeadZone)/(1.0-joyStickDeadZone);  /* scale it from 0 at the edge of the dead zone, to 1 at full */
-    } else {
-      joyX=0.0;
-    }
-    mag=Math.abs((gots[1]-mid)/mid);
-    dir=(gots[1]>mid)?-1.0:1.0;
-    //log.debug(String.format("mid=%6.3f gots[1]=%4d mag=%6.3f %3.0f %s",mid,gots[1],mag,dir,(mag >= joyStickDeadZone)?"true":"false"));
-    if(mag >= joyStickDeadZone){
-      joyY=dir*(mag-joyStickDeadZone)/(1.0-joyStickDeadZone);  /* scale it from 0 at the edge of the dead zone, to 1 at full */
-    } else {
-      joyY=0.0;
-    }
-    //log.debug(String.format("joyX=%6.3f joyY=%6.3f throttle=%5.2f percent",joyX,joyY,joyThrottle*100.));
-    
-    joyHat = gots[4]>>12;
-    
-    /* boolean feedHold0;                /*  Trigger                            bit0    button 0  */
-    /* //boolean resetSlashAbort;        /*  Thumb Switch                       bit1    button 1    not connected, I hit it too much unintentionally */                                              
-    /* boolean auxPowerOff;              /*  Near Button Left of Hat            bit2    button 2  */
-    /* boolean auxPowerOn;               /*  Near Button Right of Hat           bit3    button 3  */
-    /* boolean feedHold1;                /*  Far Button Left of Hat             bit4    button 4  */
-    /* boolean cycleStartSlashResume;    /*  Far Button Right of Hat            bit5    button 5  */
-    /* boolean motorsDisable;            /*  Lower Far Button on Base           bit6    button 6  */
-    /* boolean motorsEnable;             /*  Upper Far Button on Base           bit7    button 7  */
-    /* boolean spindleOff;               /*  Lower Mid-Distance Button on Base  bit8    button 8  */
-    /* boolean spindleOn;                /*  Upper Mid-Distance Button on Base  bit9    button 9  */
-    /* boolean coolantSlashLaserDisable; /*  Lower Near Button on Base          bit10   button 10 */
-    /* boolean coolantSlashLaserEnable;  /*  Upper Near Button on Base          bit11   Button 11 */
-    
-    int seed=2048;
-    for(int ii=11;ii<=0;ii--){
-      if(0!=(gots[4]&seed))joyStickButtons[11]=true;
-      seed/=2;
-    }     
-    
-    //seed=2048;
-    //int clY=(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int clN=(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int sY =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int sN =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int mY =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int mN =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int csr=(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int fh0 =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int apY=(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int apN=(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int ra =(0==(gots[4]&seed))?0:1;
-    //seed/=2;
-    //int fh1 =(0==(gots[4]&seed))?0:1;    
-    //String bin="0000000000000000"+Integer.toBinaryString(gots[4]);
-    //log.debug(
-    // String.format(
-    //   "%4s hat=%d switches=%-12s %s clY=%d clN=%d sY=%d sN=%d mY=%d mN=%d csr=%d fh0=%d apY=%d apN=%d ra=%d fh1=%d",
-    //   s.substring(1+s.lastIndexOf(",")),
-    //   hat,
-    //   bin.substring(bin.length()-16).substring(4),
-    //   bin.substring(bin.length()-16),
-    //   clY,clN,sY,sN,mY,mN,csr,fh0,apY,apN,ra,fh1        
-    // )
-    //);
-  } else {  
-    log.debug("got a J0Y, with gots.length not 5 s="+s);
   }
 }
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 void grblSerialEvent(String s,Serial p){
-  //log.debug("GrblSerialEvent s="+s);
+  if(verboseLogging)log.debug("GrblSerialEvent s="+s);
   if(0<s.length()){  
     //logNCon("s="+s,"serialEvent",1);
     //log.debug("serialEvent |s|=|"+s+"|");
@@ -165,9 +74,9 @@ void grblSerialEvent(String s,Serial p){
       if(streaming){
         numStreamingOKs+=1;
       } else   
-      if(amJoyStickJogging){
+      if(joy0.getAmJoyStickJogging()){
         //log.debug(String.format("jog ok %6.3f %6.3f",((aTime - time2) / 1.0e+6),((aTime - time0) / 1.0e+6)));
-        numJoyStickJoggingOKs++;
+        joy0.incrementNumJoyStickJoggingOKs();
       }
       else {
         //log.debug(String.format("    ok %6.3f %6.3f",((aTime - time2) / 1.0e+6),((aTime - time0) / 1.0e+6)));
@@ -294,7 +203,11 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
         }
       }
       /* the Machine Position (MPos) is shown is the GUI as the non-bold, smaller, lower row of location coordinatess */
-      msg=String.format("(%9.3f,",mPos[0]);
+      if(0.0==angleYOffOrthogoality){
+        msg=String.format("(%9.3f,",mPos[0]);
+      } else {
+        msg=String.format("(%9.3f,",mPos[0]-sinAngleYOffOrthogonality*mPos[1]);
+      }  
       //log.debug("7 msg="+msg);
       labelPreTexts[7]=msg;
       //label7.setText(msg);
@@ -308,17 +221,16 @@ void handleStatusReport(String s){ /* the response to the 5hz status report quer
       //label9.setText(msg);
 
       /* the Work Position (WPos) is shown in the GUI as the bold, larger, upper row of location coordinates */
-      //msg=String.format("(%9.3f,",mPos[0]-wco[0]);
-      msg=String.format("(%9.3f,",mPos[0]-gParams[activeWCO][0]);
+      if(0.0==angleYOffOrthogoality){
+        msg=String.format("(%9.3f,",mPos[0]-gParams[activeWCO][0]);
+      } else {
+         msg=String.format("(%9.3f,",mPos[0]-gParams[activeWCO][0]-(sinAngleYOffOrthogonality *(mPos[1]-gParams[activeWCO][1]) ));
+      }  
       //log.debug("2 msg="+msg);
       labelPreTexts[2]=msg;
-      //label2 .setText(msg);
-      //msg=String.format( "%9.3f,",mPos[1]-wco[1]);
       msg=String.format( "%9.3f,",mPos[1]-gParams[activeWCO][1]);
       //log.debug("10 msg="+msg);
       labelPreTexts[10]=msg;
-      //label10.setText(msg);
-      //msg=String.format( "%9.3f)",mPos[2]-wco[2]);
       msg=String.format( "%9.3f)",mPos[2]-gParams[activeWCO][2]);
       //log.debug("11 msg="+msg);
       labelPreTexts[11]=msg;
@@ -626,7 +538,7 @@ void handleFileBufferFillNPush(){
   //timeNSay("h");
   String line="";
   String regex = "[0-9, /, /., /-]+";  /* used to look for lines which have only 3 numbers (as output by Rhino) 1.000, 3.223,-1.3   */
-  DecimalFormat df=new DecimalFormat("#.#");
+  DecimalFormat df=new DecimalFormat("#.###"); /* this gives the desired format of not including needless leading spaces, or trailing zeros */
   int numEPROMs=ePROM_reads_or_writes.length;
   if(  (0< numLinesSent)
      &&(numLinesSent==(numStreamingOKs+numErrors))
@@ -635,8 +547,6 @@ void handleFileBufferFillNPush(){
     log.debug("done       streaming  numLinesSent="+numLinesSent+" vs (numStreamingOKs+numErrors)="+numStreamingOKs+"+"+numErrors+"="+(numStreamingOKs+numErrors));
     msg="streaming completed on "+numLinesSent+" gCode rows with "+numErrors+" errors";
     logNCon(msg,"handleFileBufferFillNPush",0);
-    log.debug("pre 238 label22 mod");
-    //label22.setText(msg);
     labelPreTexts[22]=msg;
     if(  (0==numErrors)
        &&(0!=priorNumErrors)
@@ -648,54 +558,119 @@ void handleFileBufferFillNPush(){
     numLinesSent=0;
     numStreamingOKs=0;
     numErrors=0;
-    log.debug("post label22 mod");
   } else { 
-    log.debug("Seem to be streaming  numLinesSent="+numLinesSent+" vs (numStreamingOKs+numErrors)="+numStreamingOKs+"+"+numErrors+"="+(numStreamingOKs+numErrors));
+    //log.debug("Seem to be streaming  numLinesSent="+numLinesSent+" vs (numStreamingOKs+numErrors)="+numStreamingOKs+"+"+numErrors+"="+(numStreamingOKs+numErrors));
     try {
+      float lastX=0.0;
+      float lastY=0.0;
       redBufferUsed=0;
       /* read line by line until the number of bytes is greater than 128
        * then push as many as will fit into the potentially partilly filled grbl buffer */
-      /* This loads up the redBuffer with enough lines to be more than enough bytes to fill the entire grbl buffer  */
+      /* This loads up the redBuffer with enough lines to be morehat than enough bytes to fill the entire grbl buffer  */      
       while(  (redBufferUsed < bufferSize)
             &&((line = br.readLine()) != null)
       ){
-        //log.debug("lineOrig=|"+line+"| which has length()="+line.length());
+        numLinesRead++;
+        /**/log.debug("lineOrig=|"+line+"| which has length()="+line.length());
         //for(int ii=0;ii<line.length();ii++){
         //  log.debug(String.format("%3d %3d %c",ii,(int)line.charAt(ii),line.charAt(ii)));
         //}
         //logNCon("lineOrig=|"+line+"|","handleFileBufferFillNPush",3);
         //log.debug("       pipe bound line as input=|"+line+"|");
+        line=line.trim();
         if(line.contains(";"))line=line.substring(0,line.indexOf(";"));
+        if(line.contains("("))line=line.substring(0,line.indexOf("("));
         //log.debug("pipe bound comment purged line =|"+line+"|");
         //String modLine=line.replaceAll("\\(.*\\)", "").replaceAll(" ","").toUpperCase()+"\n";
         String modLine=line.replaceAll("\\(.*\\)", "").replaceAll(" ","").replaceAll(crCharString,"").replaceAll(lfCharString,"").toUpperCase();
-        //log.debug("531 initial     |modLine|=|"+modLine+"| which has length="+modLine.length());
+        //log.debug("\n\n"+numLinesRead+" initial     |modLine|=|"+modLine+"| which has length="+modLine.length());
         //for(int ii=0;ii<modLine.length();ii++){
         //  log.debug(String.format("%3d %3d %c",ii,(int)modLine.charAt(ii),modLine.charAt(ii)));
         //}
-        if (modLine.matches(regex)) {
-          //log.debug("we have only numbers, commas, and/or decimalpoints");
-          String[] coords=modLine.split(",");
-          if(3==coords.length){
-            //log.debug("we will treat this as an XYZ tripplet");
-            modLine="G1X"+df.format(Double.parseDouble(coords[0]))+"Y"+df.format(Double.parseDouble(coords[1]))+"Z"+df.format(Double.parseDouble(coords[2]));
-            /**/log.debug("538 XYZ modded  |modLine|=|"+modLine+"| which has length="+modLine.length());
-          }  
-        } //else {
-        //  log.debug("some Alphas seen");
-        //}
-        /* add some parsing to make XYZ tripples conform to GRBL GCode */
         if(0<modLine.length()){
-          redBuffer.add(modLine);
-          //log.debug("546 |modLine|=|"+modLine+"| which has lengh "+modLine.length());
-          redBufferUsed+=modLine.length()+1;
-        }  
-        rowCounter++;
-        msg=rowCounter+" of "+numRows+" read";
-        //log.debug("pre 282 label22 mod    "+msg);        
-        //label22.setText(msg);
-        labelPreTexts[22]=msg;
-        //log.debug("post 562 msg="+msg+" redBufferUsed="+redBufferUsed);
+          /* add some parsing to make coma seperated, otherwize naked, XYZ tripples conform to GRBL GCode */
+          if (modLine.matches(regex)) {
+            //log.debug("we have only numbers, commas, and/or decimalpoints");
+            String[] coords=modLine.split(",");
+            if(2==coords.length){
+              //log.debug("we will treat this as an XYZ tripplet");
+              modLine=String.format("G1X%sY%s",
+                df.format(Double.parseDouble(coords[0])+((0.0==angleYOffOrthogoality)?0.0:(sinAngleYOffOrthogonality*Double.parseDouble(coords[1])))),
+                df.format(Double.parseDouble(coords[1]))
+              );
+              //modLine=String.format("G1X%.3fY%.3fZ%.3f",Float.parseFloat(coords[0]+(sinAngleYOffOrthogonality*Float.parseFloat(coords[1]))),Float.parseFloat(coords[1]),Float.parseFloat(coords[2]));
+              //log.debug("538 XYZ modded  |modLine|=|"+modLine+"| which has length="+modLine.length());
+            } else
+            if(3==coords.length){
+              //log.debug("we will treat this as an XYZ tripplet");
+              modLine=String.format("G1X%sY%sZ%s",
+                df.format(Double.parseDouble(coords[0])+((0.0==angleYOffOrthogoality)?0.0:(sinAngleYOffOrthogonality*Double.parseDouble(coords[1])))),
+                df.format(Double.parseDouble(coords[1])),
+                df.format(Double.parseDouble(coords[2]))
+              );
+              //modLine=String.format("G1X%.3fY%.3fZ%.3f",Float.parseFloat(coords[0]+(sinAngleYOffOrthogonality*Float.parseFloat(coords[1]))),Float.parseFloat(coords[1]),Float.parseFloat(coords[2]));
+              //log.debug("538 XYZ modded  |modLine|=|"+modLine+"| which has length="+modLine.length());
+            }
+          } else
+          if(0.0!=angleYOffOrthogoality){
+            //log.debug("nonOrthogonalMachine |Alpha_containg_row|=|"+modLine+"|");
+            /* the Y value can be needed in calculations to refine X, even if it is not present in the current Gcode row */
+            if(modLine.contains("Y")){
+              lastY=teaseValue(modLine,'Y');
+              //log.debug(String.format("lastY=%20.12f",lastY));
+              /* the X value will be used in calculations only if present in this line */
+              if(modLine.contains("X")){
+                lastX=teaseValue(modLine,'X');
+                //log.debug(String.format("lastX=%20.12f",lastX));
+              }
+            }
+            if(  modLine.contains("G0X")
+               ||modLine.contains("G0Y")
+               ||modLine.contains("G1X")
+               ||modLine.contains("G1Y")
+              ){
+              //log.debug("G0X or G0Y or G1X or G1Y");
+              if(modLine.contains("Y")){
+                StringBuilder sb = new StringBuilder();
+                if(modLine.contains("X")){
+                  sb.append(modLine.substring(0,1+modLine.indexOf('X')));
+                  //log.debug("sb for modline.contains(\"X\")  0 sb="+sb);
+                  sb.append(String.format("%sY%s",
+                    df.format(lastX+(sinAngleYOffOrthogonality*lastY)),
+                    df.format(lastY                                  )
+                  ));
+                  //log.debug("sb for modline.contains(\"X\")  1 sb="+sb);
+                } else {
+                  sb.append(modLine.substring(0,modLine.indexOf('Y'))+"X");
+                  //log.debug("sb for !modline.contains(\"X\") 2 sb="+sb);
+                  sb.append(String.format("%sY%s",
+                    df.format(lastX+(sinAngleYOffOrthogonality*lastY)),
+                    df.format(lastY                                  )
+                  ));
+                  //log.debug("sb for !modline.contains(\"X\") 3 sb="+sb);
+                }
+                if(modLine.contains("Z")){
+                  sb.append(modLine.substring(modLine.indexOf('Z')));
+                  //log.debug("sb for modline.contains(\"Z\")  4 sb="+sb);
+                }
+                modLine=sb.toString();
+              } //else {
+              //  log.debug("noY leave full modLine unchanged");
+              //}
+            }// else {
+            //  log.debug("neither G0 nor G1, (with XorY) so pass on unchanged");
+            //}
+          }
+          if(0<modLine.length()){
+            redBuffer.add(modLine);
+            //log.debug("|modLine|=|"+modLine+"| which has lengh "+modLine.length());
+            redBufferUsed+=modLine.length()+1;
+          }  
+          rowCounter++;
+          msg=rowCounter+" of "+numRows+" read";
+          labelPreTexts[22]=msg;
+          //log.debug("post 562 msg="+msg+" redBufferUsed="+redBufferUsed);
+        }
       }
       //logNCon("redBuffer has "+redBuffer.size()+" rows","handleFileBufferFillNPush",4);
       //for(int ii=0;ii<redBuffer.size();ii++)logNCon(
@@ -713,7 +688,8 @@ void handleFileBufferFillNPush(){
        * for each row pulled in from the buffer and parsed into it's look-ahead scheme
        */
       while(numRowsConfirmedProcessed<(numStreamingOKs+numErrors)){
-        //logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d %3d %2d",numRowsConfirmedProcessed,(numStreamingOKs+numErrors),grblBufferUsed,sentLineLengths.size()),"handleFileBufferFillNPush",5);
+        /*logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d sent.  grblBufferUsed=%3d %s",numRowsConfirmedProcessed,(numStreamingOKs+numErrors),grblBufferUsed,sentLineLengths.toString()),"handleFileBufferFillNPush",5);*/
+        //logNCon(String.format("numRowsConfirmedProcessed=%6d vs %6d sent",numRowsConfirmedProcessed,(numStreamingOKs+numErrors)),"handleFileBufferFillNPush",5);
         grblBufferUsed-=sentLineLengths.get(0);
         sentLineLengths.remove(0);
         numRowsConfirmedProcessed+=1;
@@ -727,22 +703,28 @@ void handleFileBufferFillNPush(){
       if(0<redBuffer.size()){ 
         String nextUp=redBuffer.get(0).toString().toUpperCase();
         int nextUpLength=nextUp.length()+1;
-        log.debug("redBuffer.size()="+redBuffer.size()+" nextUp="+nextUp);
+        //log.debug("redBuffer.size()="+redBuffer.size()+" with redBufferUsed="+redBufferUsed+" nextUp="+nextUp);
         while ((grblBufferUsed+nextUpLength)<=bufferSize){
           ports[grblIndex].write(nextUp+lf); 
+          if(checkGCodeMode){
+            if(nextUp.startsWith("G10P0")){
+              nextUp="G10P"+(activeWCO+1)+nextUp.substring(5);
+            }
+            log1.debug(nextUp);
+          }
           grblBufferUsed+=nextUpLength;
           sentLineLengths.add(nextUpLength);
           numLinesSent+=1;
-          /**/log.debug(String.format(
-          /**/  "sent %3d bytes of %3d which will leave %3d bytes among the remaining %2d rows. nextUpLength=%d |%s|",
-          /**/  nextUpLength,
-          /**/  redBufferUsed,
-          /**/  redBufferUsed-nextUpLength,
-          /**/  redBuffer.size()-1,
-          /**/  nextUp.length(),
-          /**/  nextUp
-          /**/  )
-          /**/);
+          //log.debug(String.format(
+          //  "sent %3d bytes of %3d which will leave %3d bytes among the remaining %2d rows. nextUpLength=%d |%s|",
+          //  nextUpLength,
+          //  redBufferUsed,
+          //  redBufferUsed-nextUpLength,
+          //  redBuffer.size()-1,
+          //  nextUp.length(),
+          //  nextUp
+          //  )
+          //);
           boolean haveEPROM=false;
           for(int ii=0;ii<numEPROMs;ii++){
             if(nextUp.contains(ePROM_reads_or_writes[ii]))haveEPROM=true;
@@ -767,8 +749,9 @@ void handleFileBufferFillNPush(){
     } catch (IOException e) {
        System.err.format("IOException: %s%n", e);
     }
-  } 
-} 
+  }
+  //log.debug("@endOf ");
+}
 
 
 
@@ -871,7 +854,7 @@ void handleGrblSaysHello(String s){
   /* initial hellow from grbl.  send the $# command to get the eprom parameters */
   frameTitle="GRBL Gui connected     port="+portNames[grblIndex]+"   "+s.substring(0,s.indexOf("[")-2);
   timeNSay("grbl said hello");
-  button22.setText((verboseOutput ?"halt ":"provide ")+"verbose output");
+  button22.setText("go2 "+(verboseOutput ?"sparse ":"verbose ")+"output");
   
   /* prompt for the stored eprom variables */
   portMsg="$#\n";
@@ -902,8 +885,8 @@ void handleStreamingError(String s){
     msg=s.startsWith("Alarm")?alarms[num-1]:errors[num-1];
     labelPreTexts[22]=msg;
     String err=String.format(
-      "row %6d has %s[%2d]=%s",
-      numRowsConfirmedProcessed+1,
+      "Gcode row %6d has %s[%2d]=%s",
+      numRowsConfirmedProcessed+1,      
       (s.startsWith("Alarm")?"Alarm":"error"),
       (num),
       (s.startsWith("Alarm")?alarms[num-1]:errors[num-1])

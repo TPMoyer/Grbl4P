@@ -1,106 +1,72 @@
 /**************************************************************************************************************/
-/* joyX and joyY have been censored by the serialEvent handler to ignore a deadzone */
-void doJoyStickJogging(){
-  float multiFactor=1.0;
-  boolean hatUpOrDown= (joyHat==0)||(joyHat==4);
-  if(  amJoyStickJogging
-     &&(joyX == 0.0)
-     &&(joyY == 0.0)
-     &&(!hatUpOrDown)
-    ){
-    amJoyStickJogging=false;
-    numJoyStickJogsSent=0;
-    numJoyStickJoggingOKs=0;
-    delay(400);
+void fiddleXJog(String textField7,boolean decades){
+  log.debug("cme@ fiddleXJog");
+  try {
+    if(0<textField7.length()){
+      float val=Float.valueOf(textField7);
+      double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+      //log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+      if(  (0.0 != mantissa)
+         &&(decades)
+        ){
+        log.debug("inside trigger");
+        button17_click1(button17, GEvent.CLICKED);
+        custom_slider1.setStickToTicks(false);
+        custom_slider2.setStickToTicks(false);
+        custom_slider3.setStickToTicks(false);
+      }    
+      custom_slider1.setValue((float)Math.log10(val));
+    }
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
   }
-  else
-  if(numJoyStickJogsSent <= numJoyStickJoggingOKs+2){
-    if(  (joyX != 0.0)
-       ||(joyY != 0.0)
-       ||(hatUpOrDown)
-      ){
-      float timePerDraw=1.0/frameRate;
-      float deltaX=0.0;
-      float deltaY=0.0;
-      float deltaZ=0.0;
-      
-      if(joyX != 0.0){
-        //joyX=1.0*(joyX>0?1:-1);
-        deltaX=multiFactor*joyX*maxFeedRates[0]/60*timePerDraw;
-      }
-      if(joyY != 0.0){
-        deltaY=multiFactor*joyY*maxFeedRates[1]/60*timePerDraw;
-      }
-      if(!amJoyStickJogging){
-        numJoyStickJogsSent=0;
-        numJoyStickJoggingOKs=0;  
-      }
-      if(hatUpOrDown){
-        deltaZ=multiFactor*joyThrottle*((joyHat==0)?1.0:-1.0)*maxFeedRates[2]/60*timePerDraw;  
-      } 
-      //log.debug(String.format("vel calc sqrt(%9.3f + %9.3f + %9.3f)",(joyX*maxFeedRates[0]*joyX*maxFeedRates[0]),(joyY*maxFeedRates[1] * joyY*maxFeedRates[1]),(joyThrottle*maxFeedRates[2] * joyThrottle*maxFeedRates[2] * (hatUpOrDown?1.0:0.0))));
-      double vel=Math.sqrt( (joyX*maxFeedRates[0] * joyX*maxFeedRates[0]) + (joyY*maxFeedRates[1] * joyY*maxFeedRates[1]) + (joyThrottle*maxFeedRates[2] * joyThrottle*maxFeedRates[2] * (hatUpOrDown?1.0:0.0) ));
-      
-      amJoyStickJogging=true;
-      if(  (0.0==joyY)
-         &&(!hatUpOrDown)
-        ){
-        msg=String.format("$J=G91 X%.3f F%.3f\n",deltaX,vel);
-      } else
-      if(  (0.0==joyX)
-         &&(!hatUpOrDown)
-        ){
-        msg=String.format("$J=G91 Y%.3f F%.3f\n",deltaY,vel);
-      } else
-      if(!hatUpOrDown){
-        msg=String.format("$J=G91 X%.3f Y%.3f F%.3f\n",deltaX,deltaY,vel);
-      } else
-      if(0.0==joyY){
-        msg=String.format("$J=G91 X%.3f Z%.3f F%.3f\n",deltaX,deltaZ,vel);
-      } else
-      if(0.0==joyX){
-        msg=String.format("$J=G91 Y%.3f Z%.3f F%.3f\n",deltaY,deltaZ,vel);
-      } else{
-        msg=String.format("$J=G91 X%.3f Y%.3f Z%.3f F%.3f\n",deltaX,deltaY,deltaZ,vel);
-      }           
-      numJoyStickJogsSent+=1;
-      writeJoyJog(msg);
-      //log.debug(String.format("joyX=%6.3f joyY=%6.3f throttle=%5.2f hat=%d numJoyStickJogsSent=%d vs %d=numJoggingOKs deltas=(%7.3f,%7.3f,%7.3f) vel=%9.3f",joyX,joyY,joyThrottle,joyHat,numJoyStickJogsSent,numJoyStickJoggingOKs,deltaX,deltaY,deltaZ,vel));  
-    }    
-  } //else {
-    //log.debug(String.format("doJoyStickJogging(); called too soon, numJoyStickJogsSent=%d vs %d=numJoggingOKs",numJoyStickJogsSent,numJoyStickJoggingOKs));
-  //}  
 }
 /**************************************************************************************************************/
-void writeJoyJog(String s){
-    ports[grblIndex].write(s.replace(" ",""));
-    log.debug(s.replace(" ","").length()+" "+s.replace("\n",""));
-}
+void fiddleYJog(String textField8,boolean decades){
+ try {
+    if(0<textField8.length()){
+      float val=Float.valueOf(textField8);
+      double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+      //log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+      if(  (0.0 != mantissa)
+         &&(decades)
+        ){
+        log.debug("inside trigger");
+        button17_click1(button17, GEvent.CLICKED);
+        custom_slider1.setStickToTicks(false);
+        custom_slider2.setStickToTicks(false);
+        custom_slider3.setStickToTicks(false);
+      }    
+      custom_slider2.setValue((float)Math.log10(val));
+    }
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
+}  
 /**************************************************************************************************************/
-int[] parseJoy(String s){
-  String[] parts=s.split(",");
-  //log.debug("parts is "+parts.length+" long");  
-  int[] outs;
-  if(6==parts.length){
-    outs = new int[5];
-    for(int ii=0;ii<5;ii++){
-      outs[ii]=Integer.decode("0x"+parts[ii+1]);
-    } 
-    if(  (false==gotJoyPriors)
-       &&(5 == parts.length)
-      ){
-      priorJoyX=outs[0];
-      priorJoyY=outs[1];
-      priorJoyR=outs[2];
-      priorJoyT=outs[3];
-      priorJoyS=outs[4];
-      gotJoyPriors=true;
-      //log.debug("gotJoyPriors");
-    } 
-  } else {
-    outs=new int[1];
-  }     
-  return outs;
+void fiddleZJog(String textField9,boolean decades){
+  try {
+    if(0<textField9.length()){
+      float val=Float.valueOf(textField9);
+      double mantissa=Math.log10((double)val)-Math.floor(Math.log10((double)val));
+      //log.debug("decades="+(decades?"True ":"False")+" val="+val+" log10(val)="+Math.log10((double)val)+" mantissa="+mantissa);
+      if(  (0.0 != mantissa)
+         &&(decades)
+        ){
+        log.debug("inside trigger");
+        button17_click1(button17, GEvent.CLICKED);
+        custom_slider1.setStickToTicks(false);
+        custom_slider2.setStickToTicks(false);
+        custom_slider3.setStickToTicks(false);
+      }    
+      custom_slider3.setValue((float)Math.log10(val));
+    }  
+  } catch (NumberFormatException nfe) {
+    logNCon("NumberFormatException: " + nfe.getMessage(),"button42_click1",1);
+    System.err.println("NumberFormatException: " + nfe.getMessage());
+  }
 }
 /**************************************************************************************************************/
 void initGrblSettings(){
@@ -143,7 +109,7 @@ void timeNSay(String s){
 void logNConPort(String s,String method,int index){
   msg="port.wrote("+s+")";
   logNCon(msg,method,index);
-  log.debug(msg);
+  //log.debug(msg);
 }  
 /**************************************************************************************************************/
 /* send to the log file and to the console, a string what was pushed to the port */
@@ -270,6 +236,10 @@ void initGUI(){
     labelPreTexts  [ii]="";
     labelPriorTexts[ii]="";
   }
+  //for(int ii=0;ii<20;ii++){
+  //  textFieldPerTexts  [ii]="";
+  //  textFieldPriorTexts[ii]="";
+  //}
 
   /* default font for the sketch set to Monospaced 20 */
   Font font0=new Font("Monospaced", Font.PLAIN, 16);
@@ -317,6 +287,9 @@ void initGUI(){
   
   label4 .setVisible(false);
   label19.setVisible(false);
+  button16.setVisible(false);
+  button24.setVisible(false);
+
   //log.debug("label4 made not visible by initialization");
 
   label1 .setText(String.format("W%dXYZ:",activeWCO));
@@ -446,13 +419,13 @@ void doGuiLabels(){
      labelPriorTexts[19]=labelPreTexts[19];
   }
   //if(!labelPreTexts [20].equals(labelPriorTexts[20])){
-  //   label20.setText(    labelPreTexts[20]);
-  //  labelPriorTexts[20]=labelPreTexts[20];
+  //  label20.setText(    labelPreTexts[20]);
+  // labelPriorTexts[20]=labelPreTexts[20];
   //}
-  //if(!labelPreTexts [21].equals(labelPriorTexts[21])){
-  //   label21.setText(    labelPreTexts[21]);
-  //   labelPriorTexts[21]=labelPreTexts[21];
-  //}
+  //  if(!labelPreTexts [21].equals(labelPriorTexts[21])){
+  //    label21.setText(    labelPreTexts[21]);
+  //    labelPriorTexts[21]=labelPreTexts[21];
+  // }   
   if(!labelPreTexts [22].equals(labelPriorTexts[22])){
      label22.setText(    labelPreTexts[22]);
      labelPriorTexts[22]=labelPreTexts[22];
@@ -499,13 +472,84 @@ void doGuiLabels(){
      label28.setText(    labelPreTexts[28]);
      labelPriorTexts[28]=labelPreTexts[28];
   }
-  //if(!labelPreTexts [29].equals(labelPriorTexts[29])){
-  //   label29.setText(    labelPreTexts[29]);
-  //   labelPriorTexts[29]=labelPreTexts[29];
-  //}
+  // if(!labelPreTexts [29].equals(labelPriorTexts[29])){
+  //    label29.setText(    labelPreTexts[29]);
+  //    labelPriorTexts[29]=labelPreTexts[29];
+  // }
   if(!labelPreTexts [30].equals(labelPriorTexts[30])){
      label30.setText(    labelPreTexts[30]);
      labelPriorTexts[30]=labelPreTexts[30];
   }
+  //if(!labelPreTexts [31].equals(labelPriorTexts[31])){
+  //   label31.setText(    labelPreTexts[31]);
+  //   labelPriorTexts[31]=labelPreTexts[31];
+  //}
+  /******** align the joystick buttons on the GUI with the input from the joystick ************/
+  if(joy0.getResponseStatesAreSticky() != joy0.getPriorResponseStatesWereSticky()){
+    //label31.setText("Sticky="+(joy0.getResponseStatesAreSticky()?"true ":"false")+" prior="+(joy0.getPriorResponseStatesWereSticky()?"true ":"false"));  
+    joy0.setPriorResponseStatesWereSticky(joy0.getResponseStatesAreSticky());
+  }
+  if(joy0.getXResponseState() != joy0.getPriorXResponseState()){
+    switch(joy0.getXResponseState()) {
+      case 1: 
+        button16.setText("Joy X Throttle");
+        button16.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+        //labelPreTexts[21]="X state=1 preState="+joy0.getPriorXResponseState();
+        break;
+      case 2: 
+        button16.setText("Joy X Off");
+        button16.setLocalColorScheme(GCScheme.RED_SCHEME);
+        //labelPreTexts[21]="X state=2 preState="+joy0.getPriorXResponseState();
+        break;
+      case 0: 
+        button16.setText("Joy X Full");
+        button16.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+        //labelPreTexts[21]="X state=0 preState="+joy0.getPriorXResponseState();
+        break;
+      default: button16.setText("WTF");
+        break;
+    }
+    //label21.setText(labelPreTexts[21]);
+    joy0.setPriorXResponseState(joy0.getXResponseState());
+  }
+  if(joy0.getYResponseState() != joy0.getPriorYResponseState()){
+    switch(joy0.getYResponseState()) {
+      case 1: 
+        button24.setText("Joy Y Throttle");
+        button24.setLocalColorScheme(GCScheme.YELLOW_SCHEME);
+        //labelPreTexts[29]="Y state=1 preState="+joy0.getPriorYResponseState();
+        break;
+      case 2: 
+        button24.setText("Joy Y Off");
+        button24.setLocalColorScheme(GCScheme.RED_SCHEME);
+        //labelPreTexts[29]="Y state=2 preState="+joy0.getPriorYResponseState();
+        break;
+      case 0: 
+        button24.setText("Joy Y Full");
+        button24.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+        //labelPreTexts[29]="Y state=0 preState="+joy0.getPriorYResponseState();
+        break;
+      default: button24.setText("WTF");
+        break;
+    }
+    //label29.setText(labelPreTexts[29]);
+    joy0.setPriorYResponseState(joy0.getYResponseState());
+  }
+}
+  /**************************************************************************************************************/
+void doExecuteCommand(){
+    msg=textfield1.getText()+"\n";
+  ports[grblIndex].write(msg);
+  logNConPort(msg,"button43_click1",0);
+  if(textfield1.getText().contains("=")){
+    int lim=textfield1.getText().indexOf("=");
+    logNConPort("$assign leftside |"+textfield1.getText().substring(0,lim)+"|","button43_click1",1);
+    logNConPort("$assign rightside|"+textfield1.getText().substring(lim)+"|","button43_click1",2);
+    if(textfield1.getText().substring(0,lim).equals("$110=")){
+      textfield3.setText(textfield1.getText().substring(lim));
+      maxFeedRates[0]=Float.valueOf(textfield1.getText().substring(lim));
+    }
+  } else {
+    logNConPort("command without equals sign |"+textfield1.getText()+"|","button43_click1",3);
+  }
 }  
-/**************************************************************************************************************/

@@ -16,6 +16,8 @@ App opens a serial interface to each of the available USB ports, and recognizes 
 
 Choise of Processing3 as my programming framework has proved out as having been a good choise. The IDE framework has been easy to work with on both both button-label-textfield GUI (present GitHub project), and for interactive 3D rendering (not this gitHub project).  It also supports logging, and several drawing extensions I used for creating patent drawings.   The IDE supports javadocs, and has been helpful in debugging those typing errors.   More pernitious errors have been aided by extendive debug logging.   And most gratifying is that super extensions, like Peter Abeles'  boofCV Processing3 port functions nicely even in a Raspberry PI.  
 
+Updated the joystick interface for a Logitech extreme 3D pro running with Grbl4P running on a Raspberry Pi, with the USB joystick connects to a USBHos Shield on a second arduino. This allows buttons on the joystick base to disable X or disable Y or cause the XY motion to be proportional to the Throttle.   Clicking the trigger while one of the base buttons is active causes the control to be "sticky" and not reset when the button is releases.   
+
 ![Image of Grbl4P GUI](https://github.com/TPMoyer/Grbl4P/blob/master/Grbl4P_Panel.png)
 
 Grbl homepage is at https://github.com/gnea/grbl/wiki

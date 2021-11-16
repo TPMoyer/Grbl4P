@@ -296,6 +296,8 @@ void initGUI(){
   label5 .setText(String.format("(%11.3f," ,jogStepSizes[0]));
   label12.setText(String.format( "%11.3f," ,jogStepSizes[1]));
   label13.setText(String.format( "%11.3f )",jogStepSizes[2]));
+  
+  label22.setText(String.format("Angle Y Differs From X Orthogonality = %6.3f degrees",Math.toDegrees(angleYOffOrthogoality)));
    
   //textfield12.setNumeric(1,6,1); /* the textfield associated with the work coordinate system (WCO) can be only values from 1 to 6, default=1 */
   

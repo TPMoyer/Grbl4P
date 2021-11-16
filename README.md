@@ -18,6 +18,8 @@ Choise of Processing3 as my programming framework has proved out as having been 
 
 Updated the joystick interface for a Logitech extreme 3D pro running with Grbl4P running on a Raspberry Pi, with the USB joystick connects to a USBHos Shield on a second arduino. This allows buttons on the joystick base to disable X or disable Y or cause the XY motion to be proportional to the Throttle.   Clicking the trigger while one of the base buttons is active causes the control to be "sticky" and not reset when the button is releases.   
 
+Autocorrection for non-orthogonal X and Y axies.   Added new feature which can be activated by uncommenting, and entering a non-zero value for angleYDiffersFromXOrthogonality in \Grbl4P\Data\Grbl4P.config     Grbl4P will then tweek X to add or subract appropriately when Y is changed.  Added a label to the GUI to show how the orthogonality of X vs Y is reflected in the config.
+
 ![Image of Grbl4P GUI](https://github.com/TPMoyer/Grbl4P/blob/master/Grbl4P_Panel.png)
 
 Grbl homepage is at https://github.com/gnea/grbl/wiki

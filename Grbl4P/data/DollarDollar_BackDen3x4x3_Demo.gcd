@@ -1,0 +1,46 @@
+;G54 (  -46.200,  -51.400,   -5.000)
+;G55 (  -51.200,  -51.400,   -5.000)
+;G56 (    0.000,    0.000,    0.000)
+;G57 (    0.000,    0.000,    0.000)
+;G58 (    0.000,    0.000,    0.000)
+;G59 (    0.000,    0.000,    0.000)
+;G28 (    0.000,    0.000,    0.000)
+;G30 (    0.000,    0.000,    0.000)
+;G92 (    0.000,    0.000,    0.000)
+;TLO (                        0.000)
+;PRB (    0.000,    0.000,    0.000) lastProbeGood=false
+
+$0    =    10      ;Step pulse, microseconds
+$1    =    25      ;Step idle delay, milliseconds
+$2    =     0      ;Step port invert, mask
+$3    =     3      ;Direction port invert, mask
+$4    =     0      ;Step enable invert, boolean
+$5    =     0      ;Limit pins invert, boolean
+$6    =     0      ;Probe pin invert, boolean
+$10   =     1      ;Status report, mask
+$11   =     0.010  ;Junction deviation, mm
+$12   =     0.002  ;Arc tolerance, mm
+$13   =     0      ;Report inches, boolean
+$20   =     0      ;Soft limits, boolean
+$21   =     1      ;Hard limits, boolean
+$22   =     1      ;Homing cycle, boolean
+$23   =     3      ;Homing dir invert, mask
+$24   =    25.000  ;Homing feed, mm/min
+$25   =   100.000  ;Homing seek, mm/min
+$26   =   250      ;Homing debounce, milliseconds
+$27   =     5.000  ;Homing pull-off, mm
+$30   =  1000      ;Max spindle speed, RPM
+$31   =     0      ;Min spindle speed, RPM
+$32   =     0      ;Laser mode, boolean
+$100  =  8000.000  ;X steps/mm
+$101  =  8000.000  ;Y steps/mm
+$102  =  8000.000  ;Z steps/mm
+$110  =    80.000  ;X Max rate, mm/min
+$111  =    80.000  ;Y Max rate, mm/min
+$112  =    80.000  ;Z Max rate, mm/min
+$120  =    30.000  ;X Acceleration, mm/sec^2
+$121  =    30.000  ;Y Acceleration, mm/sec^2
+$122  =    60.000  ;Z Acceleration, mm/sec^2
+$130  =    76.500  ;X Max travel, mm
+$131  =    91.800  ;Y Max travel, mm
+$132  =    98.000  ;Z Max travel, mm

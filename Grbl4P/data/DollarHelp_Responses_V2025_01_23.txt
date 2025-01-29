@@ -1,0 +1,614 @@
+This page enumerates the responses to 
+$help 
+and 
+$help topicNameHere
+as of 2025_01_23 given by an RP2040 compiled with the generic_map_4axis.h board.
+
+When asking: What $commands can be thrown at a roll-your-own sender app? 
+$help commands 
+answers that nicely.
+
+When asking:  What $Number settings are available to match the particulars of a home-brew CNC?
+$help settings
+answers that nicely.
+
+$help
+     Commands
+     Settings
+     A-axis
+     Aux ports
+     Axis
+     Control signals
+     Coolant
+     General
+     Homing
+     Jogging
+     Limits
+     Probing
+     Spindle
+     Stepper
+     Tool change
+     X-axis
+     Y-axis
+     Z-axis
+     
+$help commands
+     $G - output parser state.
+     $J=<gcode> - jog machine.
+     $# - output offsets, tool table, probing and home position
+     $#=<n> - output value for parameter <n>.
+     $<n> - output setting <n> value
+     $<n>=<value> - assign <value> to settings <n>
+     $$ - output all setting values
+     $$=<n> - output setting details for setting <n>.
+     $+ - output all setting values.
+     $SED=<n> - output settings description for setting <n>.
+     $B - toggle block delete switch.
+     $S - toggle single stepping switch.
+     $O - toggle optional stop switch (M1).
+     $C - enable check mode, <Reset> to exit.
+     $X - unlock machine.
+     $HSS - report homing switches status.
+     $HELP - output help topics
+     $HELP <topic> - output help for <topic>.
+     $SPINDLES - enumerate spindles, human readable.
+     $SPINDLESH - enumerate spindles, machine readable.
+     $SLP - enter sleep mode.
+     $TLR - set tool offset reference.
+     $TPW - probe tool plate.
+     $I - output system information
+     $I=<string> - set build info string.
+     $I+ - output extended system information.
+     $RST=* - restore/reset all settings.
+     $RST=$ - restore default settings.
+     $RST=& - restore driver and plugin default settings.
+     $RST=# - reset offsets.
+     $N - output startup lines.
+     $N0 - N0=<gcode> - set startup line 0.
+     $N1 - N1=<gcode> - set startup line 1.
+     $EA - enumerate alarms.
+     $EAG - enumerate alarms, Grbl formatted.
+     $EE - enumerate status codes.
+     $EEG - enumerate status codes, Grbl formatted.
+     $EG - enumerate setting groups.
+     $ES - enumerate settings.
+     $ESG - enumerate settings, Grbl formatted.
+     $ESH - enumerate settings, grblHAL formatted.
+     $E* - enumerate alarms, status codes and settings.
+     $PINS - enumerate pin bindings.
+     $PINSTATE - output auxiliary pin states.
+     $LEV - output last control signal events.
+     $LIM - output current limit pins.
+     $RTC - output current time.
+     $RTC=<ISO8601 datetime> - set current time.
+     $DWNGRD - toggle setting flags for downgrade.
+
+$help settings
+     $0: Step pulse time in microseconds, min: 2.0
+          Sets time length per step. Minimum 2 microseconds.
+          This needs to be reduced from the default value of 10 when max. step rates exceed approximately 80 kHz.
+     $1: Step idle delay in milliseconds, max: 65535
+          Sets a short hold delay when stopping to let dynamics settle before disabling steppers. Value 255 keeps motors enabled.
+     $2: Step pulse invert as axismask
+          Inverts the step signals (active low).
+     $3: Step direction invert as axismask
+          Inverts the direction signals (active low).
+     $4: Invert stepper enable output(s) as axismask
+          Inverts the stepper driver enable signals. Most drivers uses active low enable requiring inversion.
+          NOTE: If the stepper drivers shares the same enable signal only X is used.
+     $5: Invert limit inputs as axismask
+          Inverts the axis limit input signals.
+     $6: Invert probe input as boolean
+          Inverts the probe input signal(s).
+     $9: PWM Spindle as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - RPM controls spindle enable signal (2)
+          2 - Disable laser mode capability (4)
+          Enable controls PWM output availability.
+          When `RPM controls spindle enable signal` is checked and M3 or M4 is active S0 switches it off and S > 0 switches it on.
+     $10: Status report options as bitfield:
+          0 - Position in machine coordinate (1)
+          1 - Buffer state (2)
+          2 - Line numbers (4)
+          3 - Feed & speed (8)
+          4 - Pin state (16)
+          5 - Work coordinate offset (32)
+          6 - Overrides (64)
+          7 - Probe coordinates (128)
+          8 - Buffer sync on WCO change (256)
+          9 - Parser state (512)
+          10 - Alarm substatus (1024)
+          11 - Run substatus (2048)
+          12 - Enable when homing (4096)
+          Specifies optional data included in status reports and if report is sent when homing.
+          If Run substatus is enabled it may be used for simple probe protection.
+          NOTE: Parser state will be sent separately after the status report and only on changes.
+     $11: Junction deviation in mm
+          Sets how fast grblHAL travels through consecutive motions. Lower value slows it down.
+     $12: Arc tolerance in mm
+          Sets the G2 and G3 arc tracing accuracy based on radial error. Beware: A very small value may effect performance.
+     $13: Report in inches as boolean
+          Enables inch units when returning any position and rate value that is not a settings value.
+     $14: Invert control inputs as bitfield:
+          1 - Feed hold (2)
+          2 - Cycle start (4)
+          6 - EStop (64)
+          Inverts the control signals (active low).
+          NOTE: Block delete, Optional stop, EStop and Probe connected are optional signals, availability is driver dependent.
+     $15: Invert coolant outputs as bitfield:
+          0 - Flood (1)
+          1 - Mist (2)
+          Inverts the coolant and mist signals (active low).
+     $16: Invert spindle signals as bitfield:
+          0 - Spindle enable (1)
+          1 - Spindle direction (2)
+          2 - PWM (4)
+          Reboot required.
+          Inverts the spindle on, counterclockwise and PWM signals (active low).
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $17: Pullup disable control inputs as bitfield:
+          1 - Feed hold (2)
+          2 - Cycle start (4)
+          6 - EStop (64)
+          Disable the control signals pullup resistors. Potentially enables pulldown resistor if available.
+          NOTE: Block delete, Optional stop and EStop are optional signals, availability is driver dependent.
+     $18: Pullup disable limit inputs as axismask
+          Disable the limit signals pullup resistors. Potentially enables pulldown resistors if available.
+     $19: Pullup disable probe input as boolean
+          Disable the probe signal pullup resistor(s). Potentially enables pulldown resistor(s) if available.
+     $20: Soft limits enable as boolean
+          Enables soft limits checks within machine travel and sets alarm when exceeded. Requires homing.
+     $21: Hard limits enable as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - Strict mode (2)
+          2 - Disable for rotary axes (4)
+          When enabled immediately halts motion and throws an alarm when a limit switch is triggered. In strict mode only homing is possible when a switch is engaged.
+     $22: Homing cycle as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - Enable single axis commands (2)
+          2 - Homing on startup required (4)
+          3 - Set machine origin to 0 (8)
+          4 - Two switches shares one input (16)
+          5 - Allow manual (32)
+          6 - Override locks (64)
+          7 - Keep homed status on reset (128)
+          9 - Per axis feedrates (512)
+          Enables homing cycle. Requires limit switches on axes to be automatically homed.
+          When `Enable single axis commands` is checked, single axis homing can be performed by $H<axis letter> commands.
+          When `Allow manual` is checked, axes not homed automatically may be homed manually by $H or $H<axis letter> commands.
+          `Override locks` is for allowing a soft reset to disable `Homing on startup required`.
+     $23: Homing direction invert as axismask
+          Homing searches for a switch in the positive direction. Set axis bit to search in negative direction.
+     $24: Homing locate feed rate in mm/min
+          Feed rate to slowly engage limit switch to determine its location accurately.
+     $25: Homing search seek rate in mm/min
+          Seek rate to quickly find the limit switch before the slower locating phase.
+     $26: Homing switch debounce delay in milliseconds
+          Sets a short delay between phases of homing cycle to let a switch debounce.
+     $27: Homing switch pull-off distance in mm
+          Retract distance after triggering switch to disengage it. Homing will fail if switch isn't cleared.
+     $28: G73 Retract distance in mm
+          G73 retract distance (for chip breaking drilling).
+     $29: Pulse delay in microseconds, max: 20
+          Step pulse delay.
+          Normally leave this at 0 as there is an implicit delay on direction changes when AMASS is active.
+     $30: Maximum spindle speed in RPM
+          Maximum spindle speed, can be overridden by spindle plugins.
+     $31: Minimum spindle speed in RPM
+          Minimum spindle speed, can be overridden by spindle plugins.
+          When set > 0 $35 (PWM min value) may have to be set to get the configured RPM.
+     $32: Mode of operation:
+          0 - Normal
+          1 - Laser mode
+          2 - Lathe mode
+          Laser mode: consecutive G1/2/3 commands will not halt when spindle speed is changed.
+          Lathe mode: allows use of G7, G8, G96 and G97.
+     $33: Spindle PWM frequency in Hz
+          Spindle PWM frequency.
+     $34: Spindle PWM off value in percent, max: 100
+          Spindle PWM off value in percent (duty cycle).
+     $35: Spindle PWM min value in percent, max: 100
+          Spindle PWM min value in percent (duty cycle).
+     $36: Spindle PWM max value in percent, max: 100
+          Spindle PWM max value in percent (duty cycle).
+     $37: Steppers to keep enabled as axismask
+          Specifies which steppers not to disable when stopped.
+     $39: Enable legacy RT commands as boolean
+          Enables "normal" processing of ?, ! and ~ characters when part of $-setting or comment. If disabled then they are added to the input string instead.
+     $40: Limit jog commands as boolean
+          Limit jog commands to machine limits for homed axes.
+     $43: Homing passes, range: 1 - 128
+          Number of homing passes. Minimum 1, maximum 128.
+     $44: Axes homing, first pass as axismask
+          Axes to home in first pass.
+     $45: Axes homing, second pass as axismask
+          Axes to home in second pass.
+     $46: Axes homing, third pass as axismask
+          Axes to home in third pass.
+     $47: Axes homing, fourth pass as axismask
+          Axes to home in fourth pass.
+     $62: Sleep enable as boolean
+          Enable sleep mode.
+     $63: Feed hold actions as bitfield:
+          0 - Disable laser during hold (1)
+          1 - Restore spindle and coolant state on resume (2)
+          Actions taken during feed hold and on resume from feed hold.
+     $64: Force init alarm as boolean
+          Start in alarm mode after a cold reset.
+     $65: Probing feed override as boolean
+          Allow feed override during probing.
+     $100: X-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $101: Y-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $102: Z-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $103: A-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $110: X-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $111: Y-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $112: Z-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $113: A-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $120: X-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $121: Y-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $122: Z-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $123: A-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $130: X-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+     $131: Y-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+     $132: Z-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+     $133: A-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+     $341: Tool change mode:
+          0 - Normal
+          1 - Manual touch off
+          2 - Manual touch off @ G59.3
+          3 - Automatic touch off @ G59.3
+          4 - Ignore M6
+          Normal: allows jogging for manual touch off. Set new position manually.
+          Manual touch off: retracts tool axis to home position for tool change, use jogging or $TPW for touch off.
+          Manual touch off @ G59.3: retracts tool axis to home position then to G59.3 position for tool change, use jogging or $TPW for touch off.
+          Automatic touch off @ G59.3: retracts tool axis to home position for tool change, then to G59.3 position for automatic touch off.
+          All modes except "Normal" and "Ignore M6" returns the tool (controlled point) to original position after touch off.
+     $342: Tool change probing distance in mm
+          Maximum probing distance for automatic or $TPW touch off.
+     $343: Tool change locate feed rate in mm/min
+          Feed rate to slowly engage tool change sensor to determine the tool offset accurately.
+     $344: Tool change search seek rate in mm/min
+          Seek rate to quickly find the tool change sensor before the slower locating phase.
+     $345: Tool change probe pull-off rate in mm/min
+          Pull-off rate for the retract move before the slower locating phase.
+     $346: Restore position after M6 as boolean
+          When set the spindle is moved so that the controlled point (tool tip) is the same as before the M6 command, if not the spindle is only moved to the Z home position.
+     $370: Invert I/O Port inputs as bitfield:
+          0 - Aux 0 (1)
+          1 - Aux 1 (2)
+          Invert IOPort inputs.
+     $376: Rotary axes as bitfield:
+          0 - A-Axis (1)
+          Designates axes as rotary, interpretation some other relevant axis settings is changed accordingly.
+     $384: Disable G92 persistence as boolean
+          Disables save/restore of G92 offset to non-volatile storage (NVS).
+     $394: Spindle on delay in s, range: 0.5 - 20
+          Delay to allow spindle to spin up. 0 or 0.5 - 20s
+          If spindle supports "at speed" functionality it is the time to wait before alarm 14 is raised.
+     $398: Planner buffer blocks, range: 30 - 1000, reboot required
+          Number of blocks in the planner buffer.
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $481: Autoreport interval in ms, range: 100 - 1000, reboot required
+          Interval the real time report will be sent, set to 0 to disable.
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $484: Unlock required after E-Stop as boolean
+          If set unlock (by sending $X) is required after resetting a cleared E-Stop condition.
+     $486: Lock coordinate systems as bitfield:
+          0 - G59.1 (1)
+          1 - G59.2 (2)
+          2 - G59.3 (4)
+          Lock coordinate systems against accidental changes.
+     $538: Fast rotary go to G28 as bitfield:
+          0 - A-Axis (1)
+          Perform fast move to angle stored in G28 position.
+          Use:
+          G91G28<axisletter>0
+          G90
+     $539: Spindle off delay in s, range: 0.5 - 20
+          Delay to allow spindle to spin down. 0 or 0.5 - 20s
+          If spindle supports "at speed" functionality it is the time to wait before alarm 14 is raised.
+     $650: File systems options as bitfield:
+          1 - Hide LittleFS (2)
+          Auto mount SD card on startup.
+     $673: Coolant on delay in s, range: 0.5 - 20
+          Delay to allow coolant to start. 0 or 0.5 - 20s
+
+$help a-axis
+          ---- A-axis:
+     $103: A-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $113: A-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $123: A-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $133: A-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+
+$help control
+          ---- Control signals:
+     $14: Invert control inputs as bitfield:
+          1 - Feed hold (2)
+          2 - Cycle start (4)
+          6 - EStop (64)
+          Inverts the control signals (active low).
+          NOTE: Block delete, Optional stop, EStop and Probe connected are optional signals, availability is driver dependent.
+     $17: Pullup disable control inputs as bitfield:
+          1 - Feed hold (2)
+          2 - Cycle start (4)
+          6 - EStop (64)
+          Disable the control signals pullup resistors. Potentially enables pulldown resistor if available.
+          NOTE: Block delete, Optional stop and EStop are optional signals, availability is driver dependent.
+
+$help coolant
+          ---- Coolant:
+     $15: Invert coolant outputs as bitfield:
+          0 - Flood (1)
+          1 - Mist (2)
+          Inverts the coolant and mist signals (active low).
+     $673: Coolant on delay in s, range: 0.5 - 20
+          Delay to allow coolant to start. 0 or 0.5 - 20s
+     
+$help general
+          ---- General:
+     $10: Status report options as bitfield:
+          0 - Position in machine coordinate (1)
+          1 - Buffer state (2)
+          2 - Line numbers (4)
+          3 - Feed & speed (8)
+          4 - Pin state (16)
+          5 - Work coordinate offset (32)
+          6 - Overrides (64)
+          7 - Probe coordinates (128)
+          8 - Buffer sync on WCO change (256)
+          9 - Parser state (512)
+          10 - Alarm substatus (1024)
+          11 - Run substatus (2048)
+          12 - Enable when homing (4096)
+          Specifies optional data included in status reports and if report is sent when homing.
+          If Run substatus is enabled it may be used for simple probe protection.
+          NOTE: Parser state will be sent separately after the status report and only on changes.
+     $11: Junction deviation in mm
+          Sets how fast grblHAL travels through consecutive motions. Lower value slows it down.
+     $12: Arc tolerance in mm
+          Sets the G2 and G3 arc tracing accuracy based on radial error. Beware: A very small value may effect performance.
+     $13: Report in inches as boolean
+          Enables inch units when returning any position and rate value that is not a settings value.
+     $28: G73 Retract distance in mm
+          G73 retract distance (for chip breaking drilling).
+     $32: Mode of operation:
+          0 - Normal
+          1 - Laser mode
+          2 - Lathe mode
+          Laser mode: consecutive G1/2/3 commands will not halt when spindle speed is changed.
+          Lathe mode: allows use of G7, G8, G96 and G97.
+     $39: Enable legacy RT commands as boolean
+          Enables "normal" processing of ?, ! and ~ characters when part of $-setting or comment. If disabled then they are added to the input string instead.
+     $62: Sleep enable as boolean
+          Enable sleep mode.
+     $63: Feed hold actions as bitfield:
+          0 - Disable laser during hold (1)
+          1 - Restore spindle and coolant state on resume (2)
+          Actions taken during feed hold and on resume from feed hold.
+     $64: Force init alarm as boolean
+          Start in alarm mode after a cold reset.
+     $384: Disable G92 persistence as boolean
+          Disables save/restore of G92 offset to non-volatile storage (NVS).
+     $398: Planner buffer blocks, range: 30 - 1000, reboot required
+          Number of blocks in the planner buffer.
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $481: Autoreport interval in ms, range: 100 - 1000, reboot required
+          Interval the real time report will be sent, set to 0 to disable.
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $484: Unlock required after E-Stop as boolean
+          If set unlock (by sending $X) is required after resetting a cleared E-Stop condition.
+     $486: Lock coordinate systems as bitfield:
+          0 - G59.1 (1)
+          1 - G59.2 (2)
+          2 - G59.3 (4)
+          Lock coordinate systems against accidental changes.
+     $650: File systems options as bitfield:
+          1 - Hide LittleFS (2)
+          Auto mount SD card on startup.
+
+$help homing
+          ---- Homing:
+     $22: Homing cycle as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - Enable single axis commands (2)
+          2 - Homing on startup required (4)
+          3 - Set machine origin to 0 (8)
+          4 - Two switches shares one input (16)
+          5 - Allow manual (32)
+          6 - Override locks (64)
+          7 - Keep homed status on reset (128)
+          9 - Per axis feedrates (512)
+          Enables homing cycle. Requires limit switches on axes to be automatically homed.
+          When `Enable single axis commands` is checked, single axis homing can be performed by $H<axis letter> commands.
+          When `Allow manual` is checked, axes not homed automatically may be homed manually by $H or $H<axis letter> commands.
+          `Override locks` is for allowing a soft reset to disable `Homing on startup required`.
+     $23: Homing direction invert as axismask
+          Homing searches for a switch in the positive direction. Set axis bit to search in negative direction.
+     $24: Homing locate feed rate in mm/min
+          Feed rate to slowly engage limit switch to determine its location accurately.
+     $25: Homing search seek rate in mm/min
+          Seek rate to quickly find the limit switch before the slower locating phase.
+     $26: Homing switch debounce delay in milliseconds
+          Sets a short delay between phases of homing cycle to let a switch debounce.
+     $27: Homing switch pull-off distance in mm
+          Retract distance after triggering switch to disengage it. Homing will fail if switch isn't cleared.
+     $43: Homing passes, range: 1 - 128
+          Number of homing passes. Minimum 1, maximum 128.
+     $44: Axes homing, first pass as axismask
+          Axes to home in first pass.
+     $45: Axes homing, second pass as axismask
+          Axes to home in second pass.
+     $46: Axes homing, third pass as axismask
+          Axes to home in third pass.
+     $47: Axes homing, fourth pass as axismask
+          Axes to home in fourth pass.
+
+$help jogging
+          ---- Jogging:
+     $40: Limit jog commands as boolean
+          Limit jog commands to machine limits for homed axes.
+
+$help limits
+          ---- Limits:
+     $5: Invert limit inputs as axismask
+          Inverts the axis limit input signals.
+     $18: Pullup disable limit inputs as axismask
+          Disable the limit signals pullup resistors. Potentially enables pulldown resistors if available.
+     $20: Soft limits enable as boolean
+          Enables soft limits checks within machine travel and sets alarm when exceeded. Requires homing.
+     $21: Hard limits enable as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - Strict mode (2)
+          2 - Disable for rotary axes (4)
+          When enabled immediately halts motion and throws an alarm when a limit switch is triggered. In strict mode only homing is possible when a switch is engaged.
+
+$help probing
+          ---- Probing:
+     $6: Invert probe input as boolean
+          Inverts the probe input signal(s).
+     $19: Pullup disable probe input as boolean
+          Disable the probe signal pullup resistor(s). Potentially enables pulldown resistor(s) if available.
+     $65: Probing feed override as boolean
+          Allow feed override during probing.
+
+$help spindle
+          ---- Spindle:
+     $9: PWM Spindle as bitfield where setting bit 0 enables the rest:
+          0 - Enable (1)
+          1 - RPM controls spindle enable signal (2)
+          2 - Disable laser mode capability (4)
+          Enable controls PWM output availability.
+          When `RPM controls spindle enable signal` is checked and M3 or M4 is active S0 switches it off and S > 0 switches it on.
+     $16: Invert spindle signals as bitfield:
+          0 - Spindle enable (1)
+          1 - Spindle direction (2)
+          2 - PWM (4)
+          Reboot required.
+          Inverts the spindle on, counterclockwise and PWM signals (active low).
+          NOTE: A hard reset of the controller is required after changing this setting.
+     $30: Maximum spindle speed in RPM
+          Maximum spindle speed, can be overridden by spindle plugins.
+     $31: Minimum spindle speed in RPM
+          Minimum spindle speed, can be overridden by spindle plugins.
+          When set > 0 $35 (PWM min value) may have to be set to get the configured RPM.
+     $33: Spindle PWM frequency in Hz
+          Spindle PWM frequency.
+     $34: Spindle PWM off value in percent, max: 100
+          Spindle PWM off value in percent (duty cycle).
+     $35: Spindle PWM min value in percent, max: 100
+          Spindle PWM min value in percent (duty cycle).
+     $36: Spindle PWM max value in percent, max: 100
+          Spindle PWM max value in percent (duty cycle).
+     $394: Spindle on delay in s, range: 0.5 - 20
+          Delay to allow spindle to spin up. 0 or 0.5 - 20s
+          If spindle supports "at speed" functionality it is the time to wait before alarm 14 is raised.
+     $539: Spindle off delay in s, range: 0.5 - 20
+          Delay to allow spindle to spin down. 0 or 0.5 - 20s
+          If spindle supports "at speed" functionality it is the time to wait before alarm 14 is raised.
+
+$help stepper
+          ---- Stepper:
+     $0: Step pulse time in microseconds, min: 2.0
+          Sets time length per step. Minimum 2 microseconds.
+          This needs to be reduced from the default value of 10 when max. step rates exceed approximately 80 kHz.
+     $1: Step idle delay in milliseconds, max: 65535
+          Sets a short hold delay when stopping to let dynamics settle before disabling steppers. Value 255 keeps motors enabled.
+     $2: Step pulse invert as axismask
+          Inverts the step signals (active low).
+     $3: Step direction invert as axismask
+          Inverts the direction signals (active low).
+     $4: Invert stepper enable output(s) as axismask
+          Inverts the stepper driver enable signals. Most drivers uses active low enable requiring inversion.
+          NOTE: If the stepper drivers shares the same enable signal only X is used.
+     $29: Pulse delay in microseconds, max: 20
+          Step pulse delay.
+          Normally leave this at 0 as there is an implicit delay on direction changes when AMASS is active.
+     $37: Steppers to keep enabled as axismask
+          Specifies which steppers not to disable when stopped.
+     $376: Rotary axes as bitfield:
+          0 - A-Axis (1)
+          Designates axes as rotary, interpretation some other relevant axis settings is changed accordingly.
+     $538: Fast rotary go to G28 as bitfield:
+          0 - A-Axis (1)
+          Perform fast move to angle stored in G28 position.
+          Use:
+          G91G28<axisletter>0
+          G90
+
+$help tool
+          ---- Tool change:
+     $341: Tool change mode:
+          0 - Normal
+          1 - Manual touch off
+          2 - Manual touch off @ G59.3
+          3 - Automatic touch off @ G59.3
+          4 - Ignore M6
+          Normal: allows jogging for manual touch off. Set new position manually.
+          Manual touch off: retracts tool axis to home position for tool change, use jogging or $TPW for touch off.
+          Manual touch off @ G59.3: retracts tool axis to home position then to G59.3 position for tool change, use jogging or $TPW for touch off.
+          Automatic touch off @ G59.3: retracts tool axis to home position for tool change, then to G59.3 position for automatic touch off.
+          All modes except "Normal" and "Ignore M6" returns the tool (controlled point) to original position after touch off.
+     $342: Tool change probing distance in mm
+          Maximum probing distance for automatic or $TPW touch off.
+     $343: Tool change locate feed rate in mm/min
+          Feed rate to slowly engage tool change sensor to determine the tool offset accurately.
+     $344: Tool change search seek rate in mm/min
+          Seek rate to quickly find the tool change sensor before the slower locating phase.
+     $345: Tool change probe pull-off rate in mm/min
+          Pull-off rate for the retract move before the slower locating phase.
+     $346: Restore position after M6 as boolean
+          When set the spindle is moved so that the controlled point (tool tip) is the same as before the M6 command, if not the spindle is only moved to the Z home position.
+
+$help x-axis
+          ---- X-axis:
+     $100: X-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $110: X-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $120: X-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $130: X-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+
+$HELP Y-AXIS
+          ---- Y-axis:
+     $101: Y-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $111: Y-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $121: Y-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $131: Y-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.
+
+$HELP Z-AXIS
+          ---- Z-axis:
+     $102: Z-axis travel resolution in step/mm
+          Travel resolution in steps per millimeter.
+     $112: Z-axis maximum rate in mm/min
+          Maximum rate. Used as G0 rapid rate.
+     $122: Z-axis acceleration in mm/sec^2
+          Acceleration. Used for motion planning to not exceed motor torque and lose steps.
+     $132: Z-axis maximum travel in mm
+          Maximum axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.

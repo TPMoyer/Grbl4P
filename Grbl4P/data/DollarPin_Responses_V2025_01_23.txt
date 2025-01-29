@@ -1,0 +1,116 @@
+Response to $pins from RP2040 using generic_map.h
+
+PIN 00     TX,Primary UART
+PIN 01     RX,Primary UART
+PIN 02 PIO X step
+PIN 03 PIO Y step
+PIN 04 PIO Z step
+PIN 05     X dir
+PIN 06     Y dir
+PIN 07     Z dir
+PIN 08     Steppers enable
+PIN 09     X limit min
+PIN 10     Y limit min
+PIN 11     Z limit min
+PIN 12     Aux out 0,P0
+PIN 13     Spindle on
+PIN 14     Spindle direction
+PIN 15     Spindle PWM
+PIN 16     Flood
+PIN 17     Mist
+PIN 18     NC
+PIN 19     NC
+PIN 20     NC
+PIN 21     Aux in 1,P1
+PIN 22     Aux in 0,P0
+PIN 23     Aux in 2,P2
+PIN 26     Aux out 1,P1
+PIN 27     LED adressable
+PIN 28     Probe
+
+
+Response to $pins from RP2040 using generic_map_4axis.h
+
+PIN 00     TX,Primary UART
+PIN 01     RX,Primary UART
+PIN 02 PIO X step
+PIN 03 PIO Y step
+PIN 04 PIO Z step
+PIN 05 PIO A step
+PIN 06     X dir
+PIN 07     Y dir
+PIN 08     Z dir
+PIN 09     A dir
+PIN 10     Steppers enable
+PIN 11     X limit min
+PIN 12     Y limit min
+PIN 13     Z limit min
+PIN 14     A limit min
+PIN 15     Spindle PWM
+PIN 16     Flood
+PIN 17     Mist
+PIN 18     Emergency stop
+PIN 19     Feed hold
+PIN 20     Cycle start
+PIN 21     Aux in 0,P0
+PIN 22     Probe
+PIN 23     NC
+PIN 26     Spindle on
+PIN 27     Spindle direction
+PIN 28     Aux in 1,P1
+
+RP2040 with mymachine.h #define BOARD_PICO_CNC and /grbl/config.h N_AXIS=4 
+
+PIN 00,TX,Primary UART
+PIN 01,RX,Primary UART
+PIN 02,Aux out 7,P7
+PIN 03,A limit min
+PIN 04,Z limit min
+PIN 05,Y limit min
+PIN 06,X limit min
+PIN 07,Feed hold
+PIN 08,Cycle start
+PIN 09,Aux in 3,P3
+PIN 10,Aux in 0,P0
+PIN 11,Aux in 1,P1
+PIN 12,Aux in 2,P2
+PIN 13,Aux analog out 0,E0
+PIN 14,SR1 OUT
+PIN 15,SR1 SCK
+PIN 16,SR1 LCK
+    PIN SR1.0,X step
+    PIN SR1.1,Y step
+    PIN SR1.2,Z step
+    PIN SR1.3,A step
+    PIN SR1.4,X dir
+    PIN SR1.5,Y dir
+    PIN SR1.6,Z dir
+    PIN SR1.7,A dir
+PIN 17,SR0 OUT
+PIN 18,SR0 SCK
+PIN 19,SR0 LCK
+    PIN SR0.00,X enable
+    PIN SR0.01,Y enable
+    PIN SR0.02,Z enable
+    PIN SR0.03,A enable
+    PIN SR0.04,Spindle on
+    PIN SR0.05,Spindle directiion
+    PIN SR0.06,Flood
+    PIN SR0.07,Mist
+    PIN SR0.08,Aux out 0,P0
+    PIN SR0.09,Aux out 1,P1
+    PIN SR0.10,Aux out 2,P2
+    PIN SR0.11,Aux out 3,P3
+    PIN SR0.12,Aux out 4,P4
+    PIN SR0.13,Aux out 5,P5
+    PIN SR0.14,Aux out 6,P6
+    PIN SR0.15,SPI reset
+PIN 20,I2C0 SDA
+PIN 21,I2C0 SCL
+PIN 22,Emergency stop
+PIN 26,Aux in 5,P5
+PIN 27,Spindle PWM
+PIN 28,Aux in 4,P4
+
+* $pins reports the two shift registers as SR8 and SR16.
+The SR0 and SR1 used above reflects the nomenclature used in https://github.com/phil-barrett/PicoCNC/blob/main/schematic.pdf

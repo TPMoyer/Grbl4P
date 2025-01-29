@@ -1,4 +1,158 @@
 /**************************************************************************************************************/
+void initGUI(){
+  
+  createGUI();
+  for(int ii=0;ii<40;ii++){
+    labelPreTexts  [ii]="";
+    labelPriorTexts[ii]="";
+  }
+  //for(int ii=0;ii<20;ii++){
+  //  textFieldPerTexts  [ii]="";
+  //  textFieldPriorTexts[ii]="";
+  //}
+
+  /* default font for the sketch set to Monospaced 20 */
+  Font font0=new Font("Monospaced", Font.PLAIN, 16);
+  Font font1=new Font("Monospaced", Font.PLAIN, 30);   /* each char is 18 pixels wide */
+  Font font2=new Font("Monospaced", Font.PLAIN, 60);
+   
+  label17.setVisible(false);
+
+  button1 .setFont(font1);
+  button2 .setFont(font1);
+  button8 .setFont(font1);
+  button9 .setFont(font1);
+  button10.setFont(font1);
+  button11.setFont(font1);
+
+  button19.setFont(font2);
+  button19.setTextBold();
+  button14.setFont(font2);
+  button14.setTextBold();
+  button39.setFont(font1);
+  //button39.setTextBold();
+
+  //button24.setFont(font0);
+  button34.setFont(font0);
+  button35.setFont(font0);
+  button36.setFont(font0);
+  button37.setFont(font0);
+  button45.setFont(font0);
+  button46.setFont(font0);
+
+  label14.setFont(font0);
+  label30.setFont(font0);
+  label23.setFont(font0);
+  label24.setFont(font0);
+  label25.setFont(font0);
+  label28.setFont(font0);
+  
+  /* the Work coordinates */
+  label2 .setFont(font1);
+  label10.setFont(font1);
+  label11.setFont(font1);
+  label2 .setTextBold(); 
+  label10.setTextBold();
+  label11.setTextBold();
+  
+  /* the machine coordinates */
+  label7.setTextBold();
+  label8.setTextBold();
+  label9.setTextBold();
+
+  label17.setTextBold();
+  label4.setFont(font0);
+  
+  label4 .setVisible(false);
+  label19.setVisible(false);
+  button16.setVisible(false);
+  button24.setVisible(false);
+
+  /* a couple of labels and buttons were assigned and then removed */
+  label21.setVisible(false);
+  label29.setVisible(false);
+  button27.setVisible(false);
+  button30.setVisible(false);
+  button31.setVisible(false);
+  button32.setVisible(false);
+  button33.setVisible(false);
+  button38.setVisible(false);
+
+  //log.debug("label4 made not visible by initialization");
+
+  label1 .setText(String.format("W%dXYZ:",activeWCO));
+  label5 .setText(String.format("(%11.3f," ,jogStepSizes[0]));
+  label12.setText(String.format( "%11.3f," ,jogStepSizes[1]));
+  label13.setText(String.format( "%11.3f )",jogStepSizes[2]));
+  
+  label22.setText(String.format("Angle Y Differs From X Orthogonality = %6.3f degrees",Math.toDegrees(angleYOffOrthogoality)));
+   
+  //textfield12.setNumeric(1,6,1); /* the textfield associated with the work coordinate system (WCO) can be only values from 1 to 6, default=1 */
+  
+  textarea1.setFont(font0);
+ 
+}
+/**************************************************************************************************************/
+
+void openSerialPorts(boolean sayAllComPortNames){  
+  //if (ports != null) port.stop();
+  portNames = Serial.list();
+  serialThisNames = new String [portNames.length];
+  ports           = new Serial [portNames.length];
+  portsBusy       = new boolean[portNames.length];
+  logNCon("portNames has "+portNames.length+" member"+(1<portNames.length?"s":""),"openSerialPort",0);
+  if(sayAllComPortNames){
+    //printArray(portNames);
+    for(int ii=0;ii<portNames.length;ii++){
+      logNCon(portNames[ii],"OpenSerialPort",1);
+    }  
+  }  
+  int numPortsChecked=0;
+  for(int ii=0;ii<portNames.length;ii++){
+    //log.debug("doing portNames["+ii+"]="+portNames[ii]);
+    //Map<String,String> props = Serial.getProperties(portNames[ii]);
+    //log.debug("doing portNames["+ii+"]="+portNames[ii]+" which has "+props.size()+" properties");
+    //for(Map.Entry<String, String> entry : props.entrySet()) {
+    //  log.debug(String.format("OSP %8s key=%-20s  val=%20s",portNames[ii],entry.getKey(),entry.getValue()));
+    //}
+    if(knownGoodGrblComPort.equals(portNames[ii])){
+      String matcher=portNames[ii];
+      for(int jj=ii;jj>0;jj--){
+        portNames[ii]=portNames[ii-1];
+      }  
+      portNames[0]=matcher;
+    }
+  }  
+  for(int ii=0;ii<portNames.length;ii++){
+    /**/log.debug("instancing Serial interface on port "+portNames[ii]);
+    try {
+      ports[ii] = new Serial(this, portNames[ii], 115200);
+      log.debug(portNames[ii]+".   active()="+(ports[ii].active()?"true ":"false"));
+      log.debug(portNames[ii]+".available()="+ports[ii].available());
+      ports[ii].bufferUntil('\n');
+      serialThisNames[ii]=String.format("%s",ports[ii]);
+      /**/log.debug("         setting serialThisNames["+ii+"]="+serialThisNames[ii]); 
+      numPortsChecked+=1;
+      portsBusy[ii]=false;
+      delay(500);
+      //portMsg="$I"+lf; /* prompted error 2 */
+      /* in Advanced Serial Port Monitor have set options... EOL character to be <LF> on both send and recieve */
+      /* grblHAL accepts \n as an "now act on this" EOL */
+      /* 
+      portMsg="$I"+cr; /* prompted $I response Advanced Serial Port Monitor shows   $I<CR> [len=2] */
+      portMsg="$I\n";  /* prompted $I response Advanced Serial Port Monitor shows  $I<LF> [len=2]  */
+//      portMsg="$I";   /* did not prompt a response */
+      ports[ii].write(portMsg);
+    } catch (RuntimeException re){
+      if(re.getMessage().contains("Port busy"))logNCon("unable to attempt Grbl handshake on port=="+portNames[ii]+"   Port is busy","openSerialPort",1);
+      portsBusy[ii]=true;
+    }
+  } 
+  if(0==numPortsChecked)logNCon("\nwas unable to attempt handshake on any COM port\n","openSerialPort",5);
+  //log.debug("atEndOf openSerialPorts");
+}
+
+/**************************************************************************************************************/
 void fiddleXJog(String textField7,boolean decades){
   log.debug("cme@ fiddleXJog");
   try {
@@ -127,53 +281,6 @@ void hashtagParams2Console(){
   }
 }
 
-/**************************************************************************************************************/
-
-void openSerialPorts(boolean sayAllComPortNames){  
-  //if (ports != null) port.stop();
-  portNames = Serial.list();
-  serialThisNames = new String [portNames.length];
-  ports           = new Serial [portNames.length];
-  portsBusy       = new boolean[portNames.length];
-  logNCon("portNames has "+portNames.length+" member"+(1<portNames.length?"s":""),"openSerialPort",0);
-  if(sayAllComPortNames){
-    //printArray(portNames);
-    for(int ii=0;ii<portNames.length;ii++){
-      logNCon(portNames[ii],"OpenSerialPort",1);
-    }  
-  }  
-  int numPortsChecked=0;
-  for(int ii=0;ii<portNames.length;ii++){
-    //log.debug("doing portNames["+ii+"]="+portNames[ii]);
-    //Map<String,String> props = Serial.getProperties(portNames[ii]);
-    //log.debug("doing portNames["+ii+"]="+portNames[ii]+" which has "+props.size()+" properties");
-    //for(Map.Entry<String, String> entry : props.entrySet()) {
-    //  log.debug(String.format("OSP %8s key=%-20s  val=%20s",portNames[ii],entry.getKey(),entry.getValue()));
-    //}
-    if(knownGoodGrblComPort.equals(portNames[ii])){
-      String matcher=portNames[ii];
-      for(int jj=ii;jj>0;jj--){
-        portNames[ii]=portNames[ii-1];
-      }  
-      portNames[0]=matcher;
-    }
-  }  
-  for(int ii=0;ii<portNames.length;ii++){
-    //log.debug("instancing Serial interface on port "+portNames[ii]);
-    try {
-      ports[ii] = new Serial(this, portNames[ii], 115200);
-      ports[ii].bufferUntil('\n');
-      serialThisNames[ii]=String.format("%s",ports[ii]);
-      //log.debug("         setting serialThisNames["+ii+"]="+serialThisNames[ii]); 
-      numPortsChecked+=1;
-      portsBusy[ii]=false;
-    } catch (RuntimeException re){
-      if(re.getMessage().contains("Port busy"))logNCon("unable to attempt Grbl handshake on port=="+portNames[ii]+"   Port is busy","openSerialPort",1);
-      portsBusy[ii]=true;
-    }
-  } 
-  if(0==numPortsChecked)logNCon("\nwas unable to attempt handshake on any COM port\n","openSerialPort",5);
-}
 
 /**************************************************************************************************************/
 
@@ -223,98 +330,47 @@ void grblParams2Console(){
     ),"grblParams2Console",3);
     //logNCon(String.format("@endOf grblSettings loop %d of %d",ii,grblSettings.length),"grblParams2Console",4);
   }
-  //wcoOffsetPostHome[0]=grblSettings[31]-grblSettings[18];
   log.debug(String.format("homes2WorkAllPositive=(%9.3f,%9.3f%9.3f)",homes2WorkAllPositive[0],homes2WorkAllPositive[1],homes2WorkAllPositive[2]));
   //logNCon("@endOf grblParams2Console()","grblParams2Console",5);
 }
 /**************************************************************************************************************/
-/**************************************************************************************************************/
-void initGUI(){
-  
-  createGUI();
-  for(int ii=0;ii<40;ii++){
-    labelPreTexts  [ii]="";
-    labelPriorTexts[ii]="";
-  }
-  //for(int ii=0;ii<20;ii++){
-  //  textFieldPerTexts  [ii]="";
-  //  textFieldPriorTexts[ii]="";
-  //}
+void modWorkCoords(){
+  labelPreTexts[1]=String.format("W%dXYZ:",activeWCO);
+  button3 .setText(String.format("Reset W%d X",activeWCO));
+  button4 .setText(String.format("Reset W%d Y",activeWCO));
+  button5 .setText(String.format("Reset W%d Z",activeWCO));
+  button44.setText(String.format("Reset W%d XYZ",activeWCO));
 
-  /* default font for the sketch set to Monospaced 20 */
-  Font font0=new Font("Monospaced", Font.PLAIN, 16);
-  Font font1=new Font("Monospaced", Font.PLAIN, 30);
-  Font font2=new Font("Monospaced", Font.PLAIN, 60);
-   
-  label17.setVisible(false);
-
-  button19.setFont(font2);
-  button19.setTextBold();
-  button14.setFont(font2);
-  button14.setTextBold();
-  button39.setFont(font1);
-  //button39.setTextBold();
-
-  //button24.setFont(font0);
-  button34.setFont(font0);
-  button35.setFont(font0);
-  button36.setFont(font0);
-  button37.setFont(font0);
-  button45.setFont(font0);
-  button46.setFont(font0);
-
-  label2.setFont(font1);
-  label10.setFont(font1);
-  label11.setFont(font1);
-  
-  label14.setFont(font0);
-  label30.setFont(font0);
-  label23.setFont(font0);
-  label24.setFont(font0);
-  label25.setFont(font0);
-  label28.setFont(font0);
-  
-  label2.setTextBold();
-  label10.setTextBold();
-  label11.setTextBold();
-  
-  label7.setTextBold();
-  label8.setTextBold();
-  label9.setTextBold();
-
-  label17.setTextBold();
-  label4.setFont(font0);
-  
-  label4 .setVisible(false);
-  label19.setVisible(false);
-  button16.setVisible(false);
-  button24.setVisible(false);
-
-  //log.debug("label4 made not visible by initialization");
-
-  label1 .setText(String.format("W%dXYZ:",activeWCO));
-  label5 .setText(String.format("(%11.3f," ,jogStepSizes[0]));
-  label12.setText(String.format( "%11.3f," ,jogStepSizes[1]));
-  label13.setText(String.format( "%11.3f )",jogStepSizes[2]));
-  
-  label22.setText(String.format("Angle Y Differs From X Orthogonality = %6.3f degrees",Math.toDegrees(angleYOffOrthogoality)));
-   
-  //textfield12.setNumeric(1,6,1); /* the textfield associated with the work coordinate system (WCO) can be only values from 1 to 6, default=1 */
-  
-  textarea1.setFont(font0);
- 
+ /* the Work Position (WPos) is shown in the GUI as the bold, larger, upper row of location coordinates */
+ if(0.0==angleYOffOrthogoality){
+   msg=String.format("(%10.3f,",mPos[0]-gParams[activeWCO-1][0]);
+ } else {
+   msg=String.format("(%10.3f,",mPos[0]-gParams[activeWCO-1][0]-(sinAngleYOffOrthogonality *(mPos[1]-gParams[activeWCO-1][1]) ));
+ }  
+ //log.debug("2 msg="+msg);
+ labelPreTexts[2]=msg;
+ msg=String.format( "%10.3f,",mPos[1]-gParams[activeWCO-1][1]);
+ //log.debug("10 msg="+msg);
+ labelPreTexts[10]=msg;
+ msg=String.format( "%10.3f)",mPos[2]-gParams[activeWCO-1][2]);
+ //log.debug("11 msg="+msg);
+ labelPreTexts[11]=msg;
+ label2 .setText(labelPreTexts[ 2]);
+ label10.setText(labelPreTexts[10]);
+ label11.setText(labelPreTexts[11]);
 }
 /**************************************************************************************************************/
 void doGuiLabels(){
   /* I'm not proud of this section... I would have preferred to access the labels as indexed instances of the label class
   or to have used "convert-string-to-code", but that seem combersome and risky as opposed to the implemented
-  tediousness below */
+  tedious slogging through the labels one by one, implemented below */
   if(!labelPreTexts [1].equals(labelPriorTexts[1])){
      label1.setText(    labelPreTexts[1]);
      labelPriorTexts[1]=labelPreTexts[1];
   }
   if(!labelPreTexts [2].equals(labelPriorTexts[2])){
      label2.setText(    labelPreTexts[2]);
+     //label2.setText("(-12345.123,");      /* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[2]=labelPreTexts[2];
   }
   if(!labelPreTexts [3].equals(labelPriorTexts[3])){
@@ -334,22 +390,27 @@ void doGuiLabels(){
   }
   if(!labelPreTexts [7].equals(labelPriorTexts[7])){
      label7.setText(    labelPreTexts[7]);
+     //label7.setText("(   -12345.123,");/* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[7]=labelPreTexts[7];
   }
   if(!labelPreTexts [8].equals(labelPriorTexts[8])){
      label8.setText(    labelPreTexts[8]);
+     //label8.setText("-12345.123,");/* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[8]=labelPreTexts[8];
   }
   if(!labelPreTexts [9].equals(labelPriorTexts[9])){
      label9.setText(    labelPreTexts[9]);
+     //label9.setText("-12345.123 )");/* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[9]=labelPreTexts[9];
   }
   if(!labelPreTexts [10].equals(labelPriorTexts[10])){
      label10.setText(    labelPreTexts[10]);
+     //label10.setText("-12345.123,");/* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[10]=labelPreTexts[10];
   }
   if(!labelPreTexts [11].equals(labelPriorTexts[11])){
      label11.setText(    labelPreTexts[11]);
+     //label11.setText("-12345.123)");/* full width seed to allow textfield alignment in the GUI */
      labelPriorTexts[11]=labelPreTexts[11];
   }
   if(!labelPreTexts [12].equals(labelPriorTexts[12])){
@@ -540,18 +601,23 @@ void doGuiLabels(){
 }
   /**************************************************************************************************************/
 void doExecuteCommand(){
-    msg=textfield1.getText()+"\n";
+  msg=textfield1.getText()+"\n";
   ports[grblIndex].write(msg);
-  logNConPort(msg,"button43_click1",0);
+  logNConPort(textfield1.getText(),"doExecuteCommand",0);
+  log.debug("msg.toUpperCase()="+msg.toUpperCase());
   if(textfield1.getText().contains("=")){
     int lim=textfield1.getText().indexOf("=");
-    logNConPort("$assign leftside |"+textfield1.getText().substring(0,lim)+"|","button43_click1",1);
-    logNConPort("$assign rightside|"+textfield1.getText().substring(lim)+"|","button43_click1",2);
+    logNConPort("$assign leftside |"+textfield1.getText().substring(0,lim)+"|","doExecuteCommand",1);
+    logNConPort("$assign rightside|"+textfield1.getText().substring(lim)+"|","doExecuteCommand",2);
     if(textfield1.getText().substring(0,lim).equals("$110=")){
       textfield3.setText(textfield1.getText().substring(lim));
       maxFeedRates[0]=Float.valueOf(textfield1.getText().substring(lim));
     }
-  } else {
-    logNConPort("command without equals sign |"+textfield1.getText()+"|","button43_click1",3);
+  } else 
+  if(msg.toUpperCase().startsWith("PORT.WROTE($HELP")){
+    logNConPort("help mode entered","doExecuteCommand",3);
+    helpFlag=true;
+  }  else {
+    logNConPort("command without equals sign |"+textfield1.getText()+"|","doExecuteCommand",3);
   }
 }  

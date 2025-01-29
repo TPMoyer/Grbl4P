@@ -151,15 +151,15 @@ void initLog4j(){
   
   /* the following line is instanced in the app header for the main processing app, so as to have app wide scope */
   //Logger log  = Logger.getLogger("Master"); /* Thank you Jake Seigel   https://jestermax.wordpress.com/2014/06/09/log4j-4-you/   */
-  FileAppender fa = new FileAppender();
+  FileAppender fa0 = new FileAppender();
   //String fileName="Grbl_Logger.log";
-  fa.setFile((System.getProperty("os.name").toLowerCase().startsWith("win")?"c:\\logs\\":sketchPath("/home/pi/logs/"))+logFileNamePrepender+logFileNameEndPart);  
-  fa.setLayout(new PatternLayout(masterPattern));
-  fa.setThreshold(Level.DEBUG);
-  fa.setAppend(false);
-  fa.activateOptions();  
+  fa0.setFile((System.getProperty("os.name").toLowerCase().startsWith("win")?"c:\\logs\\":sketchPath("/home/pi/logs/"))+logFileNamePrepender+logFileNameEndPart);  
+  fa0.setLayout(new PatternLayout(masterPattern));
+  fa0.setThreshold(Level.DEBUG);
+  fa0.setAppend(false);
+  fa0.activateOptions();  
   //Logger.getRootLogger().addAppender(fa0); /* this causes all loggers to be collected into the file pointed to by fa0 */
-  log.addAppender(fa); /* this causes the fa0 file to get only the content sent to log */
+  log.addAppender(fa0); /* this causes the fa0 file to get only the content sent to log */
   
   log.trace("log checking ability to write at trace level"); /* not believed to be part of log4j, maby it came in with log4j2???  */
   log.debug("log checking ability to write at debug level");
@@ -276,7 +276,13 @@ void config(){
         sinAngleYOffOrthogonality=sin(angleYOffOrthogoality);
         log.debug(String.format("set angleYOffOrthogoality = %7.3f degrees sinAngleYOffOrthogonality=",degrees(angleYOffOrthogoality),sinAngleYOffOrthogonality));
         match=true;
+      } else   
+      if(parts[0].equals("GCCCE")){
+        GCCCE=parts[1].toUpperCase().equals("TRUE");
+        log.debug("GCCCE="+(GCCCE?"true":"false"));
+        match=true;
       }
+
       if(bad){
         log.debug(msg);
         println(msg);

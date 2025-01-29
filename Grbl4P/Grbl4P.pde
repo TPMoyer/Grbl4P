@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2019 2021 Thomas P Moyer
+  Copyright (c) 2019 2021 2025 Thomas P Moyer
 
   Grbl4P is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,15 +46,15 @@ Logger log0 = Logger.getLogger("Ancillary0");
 Logger log1 = Logger.getLogger("Ancillary1");
 //Logger log2 = Logger.getLogger("Ancillary2");
 
-
-String  frameTitle       = "GRBL Gui";
-int frameRateLimit=10;
-char[] crlf = new char[2];
-char lf=10;
-String crCharString="/n";
-String lfCharString="/r";
-char   jogCancel=0x85;
-int    epromDelay=100;
+String  frameTitle       = "Grbl4P: a multiPlatform GCode Sender for Grbl and GrblHAL";
+int     frameRateLimit=10;
+char[]  crlf = new char[2];
+char    lf=10;
+char    cr=13;
+String  crCharString="\n";
+String  lfCharString="\r";
+char    jogCancel=0x85;
+int     epromDelay=100;
 String  portMsg          = "";
 char    portCode         = 0;
 boolean laserPresent     = false;
@@ -65,7 +66,8 @@ boolean seeGrblParams    = false;
 boolean checkGCodeMode   = false;
 boolean lastProbeGood    = false;
 boolean verboseOutput    = false;
-boolean verboseLogging   = false;
+//boolean verboseLogging   = false;
+boolean verboseLogging   = true;
 boolean individualHomesEnabled=false;
 int     spindleSpeed     = 0;
 //String  lastMessage      = "";
@@ -77,13 +79,19 @@ int     framesPerHeartBeat = 30;
 int     heartBeatFrameCount=0;
 int     idleCount        =0; /* limit the number of unchanging reports which get logged */
 int     alarmCount       =0; /* limit the number of unchanging reports which get logged */
-float []           mPos = new float[3]; /* machine position */
-float []           wco  = new float[3]; /* work co-ordinates */
-//float []           wcoOffsetPostHome  = new float[3]; /* work co-ordinates */
-float []           ov   = new float[3]; /* nfi (no bleeding idea) */
-float [] maxFeedRates   = new float[3];
-float [][] gParams = new float[11][3];
-int activeWCO=0; /* 0->G54  1->G55  2->G56  3>-G57  4->G58  5>-G59  */
+boolean helpFlag = false;
+boolean pinsFlag = false;
+
+
+
+int   numAxies=-1;   /* this will be set when grbl report.c sends it's AXS: quantity */
+String axisNames=""; /* this will be set when grbl report.c sends it's AXS: quantity */
+/* the following are used with a dimension of numAxies, but are instanced here with the max numAxies (==8) */
+float []   mPos         = new float    [8]; /* machine position */
+float []   wco          = new float    [8]; /* work co-ordinates */
+float []   maxFeedRates = new float    [8];
+float [][] gParams      = new float[14][8];
+int activeWCO=1; /* 1->G54  2->G55  3->G56  4->G57  5->G58  6->G59  7->G59.1  8->59.2  9->59.3 */
 boolean sayIdle=true;
 boolean priorStatusHadPn=false;
 //boolean priorXLimitState=false;
@@ -97,28 +105,32 @@ boolean doNotAllowIdleToGoStale=false;  /* normal operation */
 /* I had a problem with the asyncronous serial communication to the arduino accessing the fields under the GUI causing an infrequent intermittent null-pointer */
 /* My prescriptive solution is to have the serial interface access only global variables, which are then in turn accessed by the GUI only from within the draw */
 /* I have only two states for my label fields, normal and WTF, so use a boolean instead of an int */
-String [] labelPreTexts       = new String [40]; 
+String [] labelPreTexts       = new String [40]; /* currently there are only 30 labels, so this is wasteful, but a buffer against sloppy expansion */
 String [] labelPriorTexts     = new String [40];
 boolean[] labelPreState       = new boolean[40];  /* default state == false */
 boolean[] labelPriorState     = new boolean[40];
-String [] textFieldPreTexts   = new String [20];
+String [] textFieldPreTexts   = new String [20]; /* currently there are only 11 textfields, so this is wasteful, but a buffer against sloppy expansion */
 String [] textFieldPriorTexts = new String [20];
 //String [] buttonPreTexts      = new String [40];
 //String [] buttonPriorTexts    = new String [40];
 int numLabels=30;
+boolean GCCCE=false; /* GCode Conformance Checking Enabled */
 
 float [] jogStepSizes = {1.,1.,1.,1.,1.,1.};
-float [] homes2WorkAllPositive = new float[3];
+float [] homes2WorkAllPositive = new float[8];
 String[] grblSettings = null; /* save these as strings to avoid the    "some are ints, some are floats"    difficulties in printing */
-String[] paramNames = {"G54","G55","G56","G57","G58","G59","G28","G30","G92","TLO","PRB"};
+String[] paramNames = {"G54","G55","G56","G57","G58","G59","G59.1","G59.2","G59.3","G28","G30","G92","TLO","PRB"};
 Map<String,String>mGrblSettings = new HashMap<String,String>();
+Map<String,String>mGrblPins     = new TreeMap<String,String>();
 int numRows=0;
 int rowCounter=0;
-double  timeOut=10.0;
+double timeOut=10.0;
 String msg="";
 
 /* streaming variables. Triggered within the gui, updated within the SerialEvent handlers */
 String fid="";
+int   [] bf = new int  [2]; /* bf[0]= plan_get_block_buffer_available()  bf[1]=hal.stream.get_rx_buffer_free() */
+float [] ov = new float[3]; /* ov[0]=sys.override.feed_rate  ov[1]=sys.override.rapid_rate ov[2]=spindle_0->param->override_pct  */
 boolean   streaming                 = false;
 int       numStreamingOKs           = 0;
 int       numErrors                 = 0;
@@ -139,7 +151,10 @@ String [] portNames=null;
 String [] serialThisNames=null;
 Serial [] ports=null;
 boolean[] portsBusy;
-int grblIndex=-1;
+int grblIndex=-1; /* reassigned to one of the ports upon reciept of the grblHal "hello" */
+boolean seeAnyCom=false;
+int longestPortNameLength=0;
+int serialCounter=-1;
 JoyStick joy0 = new JoyStick();
 float angleYOffOrthogoality=0.0;
 float sinAngleYOffOrthogonality=0.0;
@@ -152,22 +167,19 @@ Long time1=System.nanoTime(); /* reset to the beginning of each ? query to the a
 Long time2=System.nanoTime(); /* reset at beginning of every joystik excursion from deadZone */
 Long time3=System.nanoTime(); /* reset at beginning of every instance of verbose logging */
 
-
 /**********************************************************************************************************/
 void setup(){
-  size(900, 850  );
+  size(940,940);
   background(212,208,200);
+  surface.setTitle(frameTitle);
   boolean windows=System.getProperty("os.name").toLowerCase().startsWith("win");
   surface.setLocation(windows?1300:1020,windows?200:50);
-  crlf[0]=13;
-  crlf[1]=10;
   initLog4j();
   config();
   initGUI();
   initGrblSettings();
-
    
-  knownGoodGrblComPort="COM6";  /* for TPMoyer's windows diagnostic runs */
+  knownGoodGrblComPort="COM5";  /* for TPMoyer's windows diagnostic runs */
   openSerialPorts(true);  
   /**/frameRate(frameRateLimit);
 

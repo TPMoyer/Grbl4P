@@ -1,8 +1,8 @@
 # Grbl4P
 
-Processing4 GRBL GUI
+Gcode Sender for GRBL and GrblHAL
 
-GUI interface to GRBL V1.1 and GrblHAL CNC control using Java under the Processing 4 framework.   Java because of the large programmer base and multiplatform support, Procedssing because of the extensive plugin (such as the G4P controls) and hardware interfaces(such as RPI GPIO and boofCV)   
+GUI interface to GRBL V1.1 and GrblHAL CNC control using Java under the Processing 4 framework.   Java because of the large programmer base and multiplatform support.   This sender works on windows, generic linux, and Raspberry PIs.   Procedssing because of the extensive plugin (such as the G4P controls) and hardware interfaces(such as RPI GPIO and boofCV)   
 
 All code provided is java, using only the Processing 4 included IDE.
 All GUI controls are from the Processing G4P Library, and were created with the G4P GUI Builder tool.
